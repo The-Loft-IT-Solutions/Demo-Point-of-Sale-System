@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Café &amp; Retail POS — Interactive Demo</title>
+<!--
+  DEMO IDENTITY — Café & Retail Point-of-Sale System
+  Standard: The Loft Demo Project Generation Standard v1.1
+  Palette "Espresso & Chili":
+    --primary  #C2410C  chili (actions, active states)
+    --accent   #3F7D3A  basil (success, positive)
+    --sun      #E9A23B  mustard (highlights, figures on dark)
+    --bg       #FBF6EE  cream (app background)
+    --surface  #FFFFFF  cards, panels
+    --ink      #2B1D14  espresso (text, dark surfaces)
+    --border   #E8DCCB  oat (dividers)
+  Fonts: Bricolage Grotesque (display) · Figtree (body/UI) · Geist Mono (receipts, figures)
+  Views: Cashier Register · Owner App (device-framed) · Back-office · Customer QR Order
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#C2410C;--primary-600:#9A3412;--primary-50:#FFF1E8;
+  --accent:#3F7D3A;--accent-50:#EAF3E7;
+  --sun:#E9A23B;
+  --bg:#FBF6EE;--surface:#FFFFFF;--surface-2:#F5EDE1;
+  --ink:#2B1D14;--muted:#7A6A5C;--border:#E8DCCB;
+  --danger:#B42318;
+  --dock:56px;
+  --shadow:0 1px 2px color-mix(in srgb,var(--ink) 6%,transparent),0 10px 28px color-mix(in srgb,var(--ink) 10%,transparent);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Figtree',system-ui,sans-serif;background:var(--ink);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,.disp{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
+.mono,.num{font-family:'Geist Mono',ui-monospace,monospace}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+.ic{flex-shrink:0;display:inline-block;vertical-align:middle}
+.muted{color:var(--muted)}
+.view{display:none}
+.view.active{display:block}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@keyframes tin{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+
+/* ---------- Buttons & shared ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 14px;border-radius:10px;font-weight:700;font-size:13.5px;transition:.15s;white-space:nowrap}
+.btn-p{background:var(--primary);color:var(--surface)}
+.btn-p:hover{background:var(--primary-600)}
+.btn-s{background:var(--surface);border:1px solid var(--border)}
+.btn-s:hover{border-color:var(--primary);color:var(--primary)}
+.btn-a{background:var(--accent);color:var(--surface)}
+.btn-d{background:var(--surface);border:1px solid var(--border);color:var(--danger)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);display:grid;place-items:center;position:relative;background:var(--surface);flex-shrink:0}
+.icon-btn:hover{border-color:var(--primary);color:var(--primary)}
+.icon-btn .dot{position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--primary);border:2px solid var(--surface)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:5px}
+.chip:hover{border-color:var(--ink)}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.on-p{background:var(--primary-50);border-color:var(--primary);color:var(--primary-600)}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:2px}
+.seg button{padding:7px 14px;border-radius:8px;font-weight:700;font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px color-mix(in srgb,var(--ink) 15%,transparent)}
+.seg.sm button{padding:6px 11px;font-size:12.5px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label{font-size:12.5px;font-weight:700;color:var(--muted)}
+.input,.sel{padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);outline:none;width:100%}
+.input:focus,.sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-50)}
+textarea.input{resize:vertical;min-height:70px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.b-ok{background:var(--accent-50);color:var(--accent)}
+.b-warn{background:color-mix(in srgb,var(--sun) 22%,var(--surface));color:color-mix(in srgb,var(--sun) 45%,var(--ink))}
+.b-bad{background:color-mix(in srgb,var(--danger) 10%,var(--surface));color:var(--danger)}
+.b-info{background:var(--primary-50);color:var(--primary-600)}
+.b-n{background:var(--surface-2);color:var(--muted)}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:9px 18px;font-size:13.5px}
+.dl dt{color:var(--muted);font-weight:600}
+.dl dd{font-weight:700;text-align:right}
+.toggle{width:42px;height:24px;border-radius:999px;background:var(--border);position:relative;transition:.2s;flex-shrink:0}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--surface);transition:.2s}
+.toggle.on{background:var(--accent)}
+.toggle.on::after{left:21px}
+
+/* ---------- Navigator ---------- */
+.nav-ov{position:fixed;inset:0;z-index:100;background:radial-gradient(900px 520px at 15% 0%,color-mix(in srgb,var(--primary) 38%,transparent),transparent 65%),radial-gradient(700px 500px at 100% 100%,color-mix(in srgb,var(--sun) 18%,transparent),transparent 60%),var(--ink);color:var(--bg);overflow:auto;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.nav-ov.hide{display:none}
+.nav-in{max-width:1080px;width:100%}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--sun);font-weight:800}
+.nav-ov h1{font-size:clamp(32px,4.4vw,52px);margin:10px 0 12px;color:var(--surface);line-height:1.02}
+.nav-sub{max-width:640px;color:color-mix(in srgb,var(--bg) 72%,transparent);font-size:16px;line-height:1.6}
+.nav-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:34px}
+.nav-card{background:color-mix(in srgb,var(--surface) 6%,transparent);border:1px solid color-mix(in srgb,var(--surface) 14%,transparent);border-radius:18px;padding:20px;text-align:left;color:var(--bg);transition:.2s;position:relative;display:flex;flex-direction:column}
+.nav-card:hover{border-color:var(--sun);transform:translateY(-3px);background:color-mix(in srgb,var(--surface) 10%,transparent)}
+.nav-card .ni{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--primary);color:var(--surface);margin-bottom:16px}
+.nav-card h3{font-size:19px;margin-bottom:6px;color:var(--surface)}
+.nav-card p{font-size:13.5px;color:color-mix(in srgb,var(--bg) 70%,transparent);line-height:1.55}
+.nav-card .go{margin-top:16px;font-weight:700;font-size:13px;color:var(--sun);display:flex;align-items:center;gap:6px}
+.nav-card .tag{position:absolute;top:18px;right:18px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:var(--sun);color:var(--ink);padding:3px 8px;border-radius:999px}
+.nav-note{margin-top:22px;display:flex;align-items:center;gap:8px;color:color-mix(in srgb,var(--bg) 60%,transparent);font-size:13px}
+@media(max-width:960px){.nav-cards{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.nav-cards{grid-template-columns:1fr}.nav-ov{align-items:flex-start}}
+
+/* ---------- Switcher & attribution ---------- */
+#switcher{position:fixed;left:12px;bottom:9px;z-index:90;display:none;gap:3px;padding:4px;background:color-mix(in srgb,var(--surface) 8%,var(--ink));border:1px solid color-mix(in srgb,var(--surface) 14%,transparent);border-radius:999px}
+#switcher.show{display:flex}
+#switcher button{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;color:color-mix(in srgb,var(--bg) 75%,transparent);font-size:13px;font-weight:700;white-space:nowrap}
+#switcher button:hover:not(.on){background:color-mix(in srgb,var(--surface) 10%,transparent)}
+#switcher button.on{background:var(--primary);color:var(--surface)}
+#attr{position:fixed;right:12px;bottom:15px;z-index:89;font-size:11.5px;color:rgba(235,235,235,.85);background:rgba(0,0,0,.35);text-decoration:none;padding:5px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.12);white-space:nowrap}
+#attr:hover{color:#fff}
+@media(max-width:820px){#switcher button span{display:none}#switcher button{padding:8px 9px}}
+@media(max-width:430px){#attr{white-space:normal;max-width:112px;line-height:1.15;border-radius:10px;font-size:10px;text-align:right;bottom:10px;padding:4px 8px}}
+
+/* ---------- Modal & toasts ---------- */
+.modal-wrap{position:fixed;inset:0;z-index:120;background:color-mix(in srgb,var(--ink) 55%,transparent);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-wrap.open{display:flex}
+.modal{background:var(--surface);border-radius:18px;width:100%;max-width:480px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;box-shadow:var(--shadow);animation:pop .18s}
+.modal.wide{max-width:720px}
+.modal.receipt{max-width:430px}
+.m-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px;border-bottom:1px solid var(--border)}
+.m-head h3{font-size:18px}
+.m-body{padding:18px;overflow:auto}
+.m-foot{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.m-foot:empty{display:none}
+@media(max-width:600px){.modal-wrap{align-items:flex-end;padding:0}.modal,.modal.wide,.modal.receipt{max-width:none;border-radius:18px 18px 0 0;max-height:92vh}}
+#toasts{position:fixed;top:16px;right:16px;z-index:200;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);padding:11px 14px;border-radius:12px;box-shadow:var(--shadow);font-weight:600;font-size:13.5px;max-width:380px;animation:tin .25s;transition:.3s}
+.toast .ic{color:var(--sun)}
+.toast.warn .ic{color:var(--primary)}
+.toast.out{opacity:0;transform:translateY(-6px)}
+@media(max-width:600px){#toasts{left:12px;right:12px;align-items:stretch}}
+
+/* ---------- Register ---------- */
+.reg{height:calc(100vh - var(--dock));height:calc(100dvh - var(--dock));display:flex;flex-direction:column;background:var(--bg)}
+.reg-top{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.reg-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo-mark{width:38px;height:38px;border-radius:11px;background:var(--primary);color:var(--surface);display:grid;place-items:center;flex-shrink:0}
+.reg-brand b{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;display:block;white-space:nowrap}
+.reg-brand small{color:var(--muted);font-size:12px;white-space:nowrap}
+.reg-top-r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.chip-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border:1px solid var(--border);border-radius:10px;font-weight:700;font-size:12.5px;background:var(--surface);white-space:nowrap}
+.chip-btn:hover{border-color:var(--primary)}
+.cnt{background:var(--primary);color:var(--surface);border-radius:999px;font-size:11px;padding:1px 7px;min-width:20px;text-align:center}
+.cnt.zero{background:var(--surface-2);color:var(--muted)}
+.chip-btn.net{color:var(--accent)}
+.chip-btn.net.off{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--border));background:color-mix(in srgb,var(--danger) 6%,var(--surface))}
+.tapmeter{display:inline-flex;gap:6px;align-items:center;padding:7px 11px;border-radius:10px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:600;white-space:nowrap}
+.tapmeter b{font-family:'Geist Mono',monospace;color:var(--sun);font-size:14px}
+.reg-body{flex:1;display:grid;grid-template-columns:1fr 390px;min-height:0}
+.reg-left{display:flex;flex-direction:column;min-height:0;padding:14px 16px;gap:12px}
+.reg-tools{display:flex;flex-direction:column;gap:10px}
+.scanbar{display:flex;gap:8px;align-items:center;background:var(--surface);border:1.5px dashed var(--primary);border-radius:12px;padding:6px 6px 6px 12px;color:var(--primary)}
+.scanbar input{flex:1;border:0;outline:0;background:none;font-size:14px;color:var(--ink);min-width:0}
+.qtyrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;font-weight:700;color:var(--muted)}
+.qtyrow .chip{padding:6px 12px;font-family:'Geist Mono',monospace}
+.pgrid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(142px,1fr));gap:10px;align-content:start;padding-bottom:6px}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:7px;min-height:122px;transition:.12s;position:relative}
+.tile:hover{border-color:var(--primary);box-shadow:var(--shadow)}
+.tile:active{transform:scale(.97)}
+.ti{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:14px;flex-shrink:0}
+.tint-1{background:color-mix(in srgb,var(--primary) 14%,var(--surface));color:var(--primary-600)}
+.tint-2{background:color-mix(in srgb,var(--sun) 24%,var(--surface));color:color-mix(in srgb,var(--sun) 40%,var(--ink))}
+.tint-3{background:var(--accent-50);color:var(--accent)}
+.tint-4{background:color-mix(in srgb,var(--ink) 10%,var(--surface));color:var(--ink)}
+.tile .tn{font-weight:700;font-size:13.5px;line-height:1.25}
+.tile .bc{font-size:10.5px;color:var(--muted)}
+.tile .tp{margin-top:auto;font-family:'Geist Mono',monospace;font-weight:500;color:var(--muted);font-size:13px}
+.tile .tm{position:absolute;top:10px;right:10px;font-size:10.5px;font-weight:700;color:var(--muted);background:var(--surface-2);padding:2px 6px;border-radius:6px}
+.ticket{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.t-head{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.t-head h3{font-size:17px}
+.t-head small{font-size:12px}
+.t-back{display:none!important}
+.t-meta{padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.t-meta .sel{width:auto;padding:6px 10px;font-weight:700;font-size:12.5px}
+.t-lines{flex:1;overflow:auto;padding:4px 16px}
+.line{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:10px 0;border-bottom:1px dashed var(--border);align-items:center}
+.line .ln{font-weight:700;font-size:13.5px}
+.line .lm{font-size:12px;color:var(--muted);margin-top:1px}
+.line .lu{font-size:12px;color:var(--muted);font-family:'Geist Mono',monospace}
+.line .lt{font-family:'Geist Mono',monospace;font-weight:600;text-align:right}
+.qty{display:inline-flex;align-items:center;gap:2px;background:var(--surface-2);border-radius:9px;padding:2px}
+.qty button{width:28px;height:28px;border-radius:7px;display:grid;place-items:center}
+.qty button:hover{background:var(--surface)}
+.qty span{min-width:22px;text-align:center;font-family:'Geist Mono',monospace;font-weight:600}
+.t-empty{text-align:center;color:var(--muted);padding:44px 10px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.t-empty .ei{width:56px;height:56px;border-radius:16px;background:var(--surface-2);display:grid;place-items:center;color:var(--muted)}
+.t-disc{display:flex;gap:6px;padding:10px 16px;border-top:1px solid var(--border);flex-wrap:wrap}
+.t-disc .chip{font-size:12px;padding:6px 10px}
+.t-tot{padding:6px 16px 2px;font-size:13px}
+.t-tot .r{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted)}
+.t-tot .r b{font-family:'Geist Mono',monospace;font-weight:500;color:var(--ink)}
+.t-tot .r.dsc b{color:var(--accent)}
+.t-tot .r.pts{color:var(--primary-600);font-weight:600}
+.t-tot .r.grand{font-size:18px;color:var(--ink);font-weight:800;padding-top:8px;border-top:1px solid var(--border);margin-top:4px}
+.t-tot .r.grand b{font-weight:700}
+.t-act{display:grid;grid-template-columns:auto 1fr;gap:8px;padding:10px 16px 14px}
+.charge{padding:14px;font-size:16px;border-radius:12px}
+.mob-order{display:none}
+@media(max-width:1100px){.reg-top-r .chip-btn .lbl{display:none}}
+@media(max-width:900px){
+  .reg-top{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  .reg-top-r{width:100%;overflow-x:auto;padding-bottom:2px}
+  .reg-body{grid-template-columns:1fr}
+  .reg-left{padding:12px}
+  .ticket{position:fixed;left:0;right:0;top:0;bottom:var(--dock);z-index:40;transform:translateX(100%);transition:transform .25s;border-left:0}
+  .ticket.open{transform:none}
+  .t-back{display:grid!important}
+  .mob-order{display:flex;align-items:center;gap:10px;position:fixed;left:12px;right:12px;bottom:calc(var(--dock) + 10px);z-index:30;background:var(--primary);color:var(--surface);padding:13px 16px;border-radius:14px;font-weight:700;box-shadow:var(--shadow)}
+  .mob-order span{flex:1;text-align:left}
+  .pgrid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));padding-bottom:76px}
+}
+
+/* ---------- Owner app (device-framed) ---------- */
+.owner-canvas{min-height:calc(100vh - var(--dock));min-height:calc(100dvh - var(--dock));background:radial-gradient(700px 500px at 85% 20%,color-mix(in srgb,var(--sun) 22%,transparent),transparent 60%),radial-gradient(600px 500px at 0% 100%,color-mix(in srgb,var(--primary) 12%,transparent),transparent 60%),var(--bg);display:flex;align-items:center;justify-content:center;gap:64px;padding:24px}
+.owner-cap{max-width:380px}
+.owner-cap .eyebrow{color:var(--primary)}
+.owner-cap h2{font-size:40px;line-height:1.04;margin:10px 0 14px}
+.owner-cap p{color:var(--muted);line-height:1.6;font-size:15px}
+.cap-list{list-style:none;margin:20px 0;display:flex;flex-direction:column;gap:11px}
+.cap-list li{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.cap-list .ic{color:var(--primary);margin-top:1px}
+.cap-hint{display:flex;gap:8px;align-items:center;padding:11px 13px;border-radius:12px;background:var(--surface);border:1px dashed var(--primary);font-size:13px;color:var(--primary-600);font-weight:700}
+.phone{height:min(820px,calc(100vh - var(--dock) - 40px));aspect-ratio:410/840;background:var(--ink);border-radius:54px;padding:12px;box-shadow:0 30px 70px color-mix(in srgb,var(--ink) 32%,transparent);flex-shrink:0}
+.phone-screen{width:100%;height:100%;background:var(--bg);border-radius:43px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.oa-status{display:flex;justify-content:space-between;align-items:center;padding:14px 28px 4px;font-size:12.5px;font-weight:800}
+.oa-status span{display:flex;gap:5px;align-items:center}
+.oa-head{padding:6px 18px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.oa-head small{color:var(--muted);font-size:12px;font-weight:600}
+.oa-head h3{font-size:21px}
+.oa-body{flex:1;overflow:auto;padding:0 14px 14px}
+.oa-pane{display:none}
+.oa-pane.on{display:block}
+.oa-tabs{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:1px solid var(--border);padding:7px 6px 16px}
+.oa-tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--muted);padding:6px 0;position:relative}
+.oa-tabs button.on{color:var(--primary)}
+.oa-dot{position:absolute;top:4px;left:calc(50% + 6px);width:8px;height:8px;border-radius:50%;background:var(--primary)}
+.oa-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px}
+.oa-chips .chip{padding:6px 11px;font-size:12px;white-space:nowrap}
+.oa-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px;margin-bottom:12px}
+.oa-hero{background:var(--ink);color:var(--bg);border:0}
+.oa-hero small{opacity:.7;font-size:12px;font-weight:600}
+.oa-hero .big{font-family:'Bricolage Grotesque',sans-serif;font-size:34px;font-weight:800;margin:2px 0;color:var(--surface)}
+.up{color:var(--sun);font-weight:700;font-size:12.5px;display:inline-flex;gap:4px;align-items:center}
+.oa-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.oa-mini div{background:color-mix(in srgb,var(--bg) 10%,transparent);border-radius:12px;padding:8px 10px}
+.oa-mini b{display:block;font-family:'Geist Mono',monospace;font-size:14.5px;color:var(--surface)}
+.oa-mini small{font-size:11px}
+.oa-ttl{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.oa-ttl h4{font-size:14.5px}
+.oa-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.oa-row:last-child{border-bottom:0}
+.oa-row .grow{flex:1;min-width:0}
+.oa-row small{display:block;color:var(--muted);font-size:11.5px}
+.oa-row .num{font-weight:600}
+.sdot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.oa-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex-shrink:0}
+.oa-appr{border:1.5px solid var(--primary)}
+.oa-appr .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.oa-alert.unread{background:color-mix(in srgb,var(--primary) 4%,var(--surface))}
+.oa-alert.unread b::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--primary);margin-left:6px;vertical-align:2px}
+.chat{display:flex;flex-direction:column;gap:9px;padding-top:4px}
+.bub{max-width:88%;padding:10px 12px;border-radius:16px;font-size:13.3px;line-height:1.45}
+.bub.ai{background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:5px;align-self:flex-start}
+.bub.ai .who{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--primary);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
+.bub.me{background:var(--primary);color:var(--surface);border-bottom-right-radius:5px;align-self:flex-end}
+.typing span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin:0 2px;animation:blink 1s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+.sugg{display:flex;flex-direction:column;gap:6px;margin:4px 0 6px}
+.sugg button{font-size:12.5px;padding:8px 11px;border-radius:12px;border:1px solid color-mix(in srgb,var(--primary) 40%,var(--border));color:var(--primary-600);background:var(--primary-50);font-weight:700;text-align:left;display:flex;gap:6px;align-items:center}
+.chatbar{display:none;gap:6px;padding:9px 12px;background:var(--surface);border-top:1px solid var(--border)}
+.chatbar.show{display:flex}
+.chatbar input{flex:1;border:1px solid var(--border);border-radius:999px;padding:9px 14px;outline:none;background:var(--bg);min-width:0}
+.chatbar button{width:38px;height:38px;border-radius:50%;background:var(--primary);color:var(--surface);display:grid;place-items:center;flex-shrink:0}
+.wbars{display:flex;align-items:flex-end;gap:8px;height:130px;margin-top:8px}
+.wbar{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
+.wbar i{display:block;width:100%;border-radius:7px 7px 3px 3px;background:color-mix(in srgb,var(--primary) 30%,var(--surface))}
+.wbar.today i{background:var(--primary)}
+.wbar small{font-size:10.5px;color:var(--muted);font-weight:700}
+.mix{height:10px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin-top:4px}
+.mix div{height:100%;border-radius:999px}
+@media(max-width:1080px){.owner-canvas{gap:36px}.owner-cap{max-width:300px}.owner-cap h2{font-size:31px}}
+@media(max-width:860px){
+  .owner-canvas{padding:0;display:block;min-height:0}
+  .owner-cap{display:none}
+  .phone{height:calc(100vh - var(--dock));height:calc(100dvh - var(--dock));width:100%;aspect-ratio:auto;border-radius:0;padding:0;box-shadow:none}
+  .phone-screen{border-radius:0}
+  .oa-status{display:none}
+  .oa-head{padding-top:14px}
+}
+
+/* ---------- Back-office ---------- */
+.bo{display:grid;grid-template-columns:248px 1fr;height:calc(100vh - var(--dock));height:calc(100dvh - var(--dock));background:var(--bg)}
+.bo-side{background:var(--ink);color:var(--bg);display:flex;flex-direction:column;padding:16px 12px;overflow:auto}
+.bo-brand{display:flex;gap:10px;align-items:center;padding:2px 8px 10px}
+.bo-brand b{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;display:block;color:var(--surface)}
+.bo-brand small{font-size:11.5px;color:color-mix(in srgb,var(--bg) 55%,transparent)}
+.bo-grp{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb,var(--bg) 45%,transparent);padding:14px 10px 6px;font-weight:800}
+.bo-link{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:10px;font-weight:600;font-size:13.5px;color:color-mix(in srgb,var(--bg) 78%,transparent);text-align:left}
+.bo-link:hover{background:color-mix(in srgb,var(--bg) 8%,transparent)}
+.bo-link.on{background:var(--primary);color:var(--surface)}
+.bo-link .pill{margin-left:auto;font-size:10.5px;background:var(--sun);color:var(--ink);padding:1px 7px;border-radius:999px;font-weight:800}
+.bo-side-foot{margin-top:auto;padding:14px 8px 4px;display:flex;align-items:center;gap:10px;border-top:1px solid color-mix(in srgb,var(--bg) 12%,transparent)}
+.bo-side-foot small{display:block;font-size:11.5px;color:color-mix(in srgb,var(--bg) 55%,transparent)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--sun);color:var(--ink);display:grid;place-items:center;font-weight:800;font-size:13px;flex-shrink:0}
+.bo-main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.bo-top{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--surface);border-bottom:1px solid var(--border)}
+.bo-top h2{font-size:20px;white-space:nowrap}
+.bo-burger{display:none!important}
+.bo-search{margin-left:auto;display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;width:270px;color:var(--muted)}
+.bo-search input{border:0;outline:0;background:none;width:100%}
+.bo-page{flex:1;overflow:auto;padding:22px}
+.page-h{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.page-h p{color:var(--muted);font-size:13.5px;max-width:560px}
+.page-h .acts{display:flex;gap:8px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px}
+.kpi .kh{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12.5px;font-weight:700}
+.kpi .kh .ic{color:var(--primary)}
+.kpi .kv{font-family:'Bricolage Grotesque',sans-serif;font-size:26px;font-weight:800;margin:6px 0 2px}
+.kpi .kd{font-size:12px;font-weight:700}
+.kd.up2{color:var(--accent)}
+.kd.down{color:var(--danger)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:18px}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.panel-h h3{font-size:16px}
+.panel-h p{color:var(--muted);font-size:12.5px}
+.grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-bottom:18px}
+.grid2 .panel{margin-bottom:0}
+.bars{display:flex;align-items:flex-end;gap:14px;height:210px;padding-top:10px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bar .stack{width:100%;max-width:48px;display:flex;flex-direction:column-reverse;border-radius:8px 8px 4px 4px;overflow:hidden}
+.bar .s1{background:var(--primary)}
+.bar .s2{background:var(--sun)}
+.bar .s3{background:var(--accent)}
+.bar small{font-size:11.5px;color:var(--muted);font-weight:700}
+.bar .bt{font-size:11px;font-family:'Geist Mono',monospace;color:var(--muted)}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--muted);font-weight:600}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.feed-i{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.feed-i:last-child{border-bottom:0}
+.feed-i .grow{flex:1;min-width:0}
+.feed-i b{font-size:13px}
+.feed-i small{display:block;color:var(--muted);font-size:12px}
+.fi{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex-shrink:0}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.filters .chip{padding:6px 12px;font-size:12.5px}
+.tbl-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:680px}
+.tbl th{text-align:left;padding:10px 12px;background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);white-space:nowrap}
+.tbl td{padding:10px 12px;border-top:1px solid var(--border);white-space:nowrap;vertical-align:middle}
+.tbl tr:hover td{background:color-mix(in srgb,var(--primary) 3%,var(--surface))}
+.tbl .empty{text-align:center;color:var(--muted);padding:28px}
+.tbl .r{text-align:right}
+.cell-i{display:flex;align-items:center;gap:10px}
+.cell-i .ti{width:30px;height:30px;font-size:11.5px;border-radius:8px}
+.lnk{color:var(--primary);font-weight:700;display:inline-flex;gap:4px;align-items:center;font-size:12.5px}
+.lnk:hover{color:var(--primary-600);text-decoration:underline}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.bcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.bcard .bh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.bcard h4{font-size:16px}
+.bcard .big{font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:800}
+.setup-i{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;background:var(--surface)}
+.setup-i .si{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--border);color:var(--muted);flex-shrink:0;font-weight:800}
+.setup-i .grow{flex:1;min-width:0}
+.setup-i small{display:block;color:var(--muted);font-size:12.5px}
+.setup-i.done .si{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.setup-i.done b{color:var(--muted);text-decoration:line-through}
+.progress{height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.progress div{height:100%;background:var(--accent);transition:width .4s;border-radius:999px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.trow:last-child{border-bottom:0}
+.trow small{display:block;color:var(--muted);font-size:12.5px}
+.note{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--primary-50);color:var(--primary-600);font-size:13px;font-weight:600;line-height:1.5}
+.bo-backdrop{display:none}
+@media(max-width:1180px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.cards3{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){
+  .bo{grid-template-columns:1fr}
+  .bo-side{position:fixed;top:0;left:0;bottom:0;width:264px;z-index:60;transform:translateX(-100%);transition:transform .25s}
+  .bo-side.open{transform:none}
+  .bo-backdrop.open{display:block;position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 50%,transparent);z-index:55}
+  .bo-burger{display:grid!important}
+  .bo-search{display:none}
+  .bo-top{padding:10px 14px}
+  .bo-top .avatar{margin-left:auto}
+  .bo-page{padding:14px}
+  .form-grid,.cards3{grid-template-columns:1fr}
+}
+@media(max-width:520px){.kpis{grid-template-columns:1fr 1fr;gap:10px}.kpi .kv{font-size:21px}}
+
+/* ---------- Customer QR order ---------- */
+.cx{background:var(--bg);min-height:100vh}
+.cx-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.cx-nav-in{max-width:1140px;margin:0 auto;display:flex;align-items:center;gap:20px;padding:12px 20px}
+.cx-logo{display:flex;gap:10px;align-items:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px}
+.cx-links{display:flex;gap:24px;margin-left:auto}
+.cx-links button{font-weight:600;color:var(--muted)}
+.cx-links button:hover{color:var(--primary)}
+.cx-burger{display:none!important}
+.cx-mob{display:none}
+.cx-hero{max-width:1140px;margin:0 auto;padding:56px 20px 36px;display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center}
+.table-badge{display:inline-flex;gap:8px;align-items:center;padding:7px 13px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-weight:700;font-size:13px;margin-bottom:18px}
+.live{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-50)}
+.cx-hero h1{font-size:clamp(38px,5.2vw,64px);line-height:1}
+.cx-hero h1 em{font-style:normal;color:var(--primary)}
+.cx-hero p{font-size:17px;color:var(--muted);margin:18px 0 26px;line-height:1.6;max-width:480px}
+.cx-hero .acts{display:flex;gap:10px;flex-wrap:wrap}
+.cx-hero .btn{padding:13px 20px;font-size:15px;border-radius:12px}
+.cx-art{aspect-ratio:1;border-radius:32px;background:radial-gradient(circle at 30% 30%,color-mix(in srgb,var(--sun) 70%,var(--surface)),transparent 55%),linear-gradient(150deg,var(--primary),var(--primary-600));position:relative;overflow:hidden;display:grid;place-items:center;color:var(--surface)}
+.cx-art .ring{position:absolute;border:2px solid color-mix(in srgb,var(--surface) 25%,transparent);border-radius:50%}
+.cx-art .cup{width:46%;aspect-ratio:1;border-radius:50%;background:color-mix(in srgb,var(--ink) 25%,transparent);display:grid;place-items:center}
+.float{position:absolute;background:var(--surface);color:var(--ink);border-radius:14px;padding:10px 13px;box-shadow:var(--shadow);font-size:12.5px;font-weight:700;display:flex;gap:8px;align-items:center}
+.float small{display:block;color:var(--muted);font-weight:600;font-size:11.5px}
+.cx-sec{max-width:1140px;margin:0 auto;padding:48px 20px;scroll-margin-top:64px}
+.sec-h{text-align:center;max-width:580px;margin:0 auto 28px}
+.sec-h .eyebrow{color:var(--primary)}
+.sec-h h2{font-size:clamp(28px,3.4vw,38px);margin:8px 0 8px}
+.sec-h p{color:var(--muted);line-height:1.6}
+.vals{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.val{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px}
+.val .vi{width:46px;height:46px;border-radius:13px;background:var(--primary-50);color:var(--primary);display:grid;place-items:center;margin-bottom:14px}
+.val h3{font-size:18px;margin-bottom:6px}
+.val p{color:var(--muted);line-height:1.55}
+.menu-tabs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mi{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px;display:flex;gap:14px;align-items:center}
+.mi .ti{width:62px;height:62px;border-radius:16px;font-size:19px}
+.mi .grow{flex:1;min-width:0}
+.mi h4{font-size:15.5px}
+.mi p{font-size:12.5px;color:var(--muted);margin:2px 0 6px;line-height:1.4}
+.mi .mp{font-family:'Geist Mono',monospace;font-weight:600}
+.mi .add{width:40px;height:40px;border-radius:12px;background:var(--ink);color:var(--bg);display:grid;place-items:center;flex-shrink:0;font-weight:800;font-family:'Geist Mono',monospace}
+.mi .add:hover{background:var(--primary)}
+.mi .add.has{background:var(--primary)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.step{padding:22px;border-radius:18px;background:var(--surface);border:1px solid var(--border)}
+.step .sn{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:42px;color:var(--primary);line-height:1;margin-bottom:10px}
+.step h3{font-size:17px;margin-bottom:6px}
+.step p{color:var(--muted);line-height:1.55}
+.rewards{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;background:var(--ink);color:var(--bg);border-radius:28px;padding:38px}
+.rewards .eyebrow{color:var(--sun)}
+.rewards h2{font-size:clamp(26px,3vw,36px);margin:8px 0 10px;color:var(--surface)}
+.rewards p{color:color-mix(in srgb,var(--bg) 72%,transparent);line-height:1.6}
+.rw-perks{display:flex;gap:18px;margin-top:18px;flex-wrap:wrap}
+.rw-perks div{display:flex;gap:8px;align-items:center;font-weight:700;font-size:13.5px}
+.rw-perks .ic{color:var(--sun)}
+.rw-form{background:var(--surface);color:var(--ink);border-radius:20px;padding:22px}
+.rw-form h3{font-size:18px;margin-bottom:12px}
+.visit{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.vcard{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;display:flex;gap:12px}
+.vcard .vi{width:40px;height:40px;border-radius:12px;background:var(--primary-50);color:var(--primary);display:grid;place-items:center;flex-shrink:0}
+.vcard b{display:block;margin-bottom:3px}
+.vcard p{color:var(--muted);font-size:13.5px;line-height:1.5}
+.cx-foot{background:var(--ink);color:color-mix(in srgb,var(--bg) 70%,transparent);padding:30px 20px calc(var(--dock) + 26px);margin-top:36px}
+.cx-foot-in{max-width:1140px;margin:0 auto;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center;font-size:13px}
+.cx-foot .cx-logo{color:var(--surface);font-size:18px}
+.cx-foot nav{display:flex;gap:18px;flex-wrap:wrap}
+.cx-foot nav button:hover{color:var(--sun)}
+.cartbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--dock) + 12px);z-index:35;display:none;align-items:center;gap:12px;background:var(--primary);color:var(--surface);padding:11px 14px 11px 16px;border-radius:999px;box-shadow:var(--shadow);font-weight:700;width:min(520px,calc(100% - 24px))}
+.cartbar.show{display:flex}
+.cartbar .cb-n{background:var(--surface);color:var(--primary);border-radius:999px;min-width:26px;height:26px;display:grid;place-items:center;font-size:13px;padding:0 6px}
+.cartbar .t{margin-left:auto;font-family:'Geist Mono',monospace}
+.sheet-back{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 50%,transparent);z-index:94;display:none}
+.sheet-back.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:95;background:var(--surface);border-radius:22px 22px 0 0;max-height:88vh;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .28s;max-width:560px;margin:0 auto;box-shadow:var(--shadow)}
+.sheet.open{transform:none}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.sheet-b{padding:14px 18px;overflow:auto}
+.sheet-f{padding:14px 18px 18px;border-top:1px solid var(--border)}
+.payopt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.payopt button{border:1.5px solid var(--border);border-radius:12px;padding:11px;font-weight:700;font-size:13px;display:flex;gap:7px;align-items:center;justify-content:center}
+.payopt button.on{border-color:var(--primary);background:var(--primary-50);color:var(--primary-600)}
+@media(max-width:1100px){.menu{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){
+  .cx-links{display:none}
+  .cx-burger{display:grid!important}
+  .cx-nav .cx-cta{margin-left:auto}
+  .cx-mob.open{display:flex;flex-direction:column;padding:4px 20px 14px;border-top:1px solid var(--border)}
+  .cx-mob button{padding:11px 0;text-align:left;font-weight:700;border-bottom:1px solid var(--border)}
+  .cx-mob button:last-child{border-bottom:0}
+  .cx-hero{grid-template-columns:1fr;padding-top:30px;gap:28px}
+  .cx-art{max-width:420px;width:100%}
+  .vals,.steps,.menu,.visit{grid-template-columns:1fr}
+  .rewards{grid-template-columns:1fr;padding:24px}
+}
+
+/* ---------- Pay, mods, receipt ---------- */
+.og{margin-bottom:16px}
+.og h4{font-family:'Figtree',sans-serif;font-size:12px;margin-bottom:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opt{padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;font-weight:700;font-size:13px}
+.opt small{color:var(--muted);font-weight:600;margin-left:4px;font-family:'Geist Mono',monospace}
+.opt.on{border-color:var(--primary);background:var(--primary-50);color:var(--primary-600)}
+.paytabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.paytab{border:1.5px solid var(--border);border-radius:12px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:700;font-size:13px}
+.paytab.on{border-color:var(--primary);background:var(--primary-50);color:var(--primary-600)}
+.due{text-align:center;margin-bottom:16px}
+.due small{color:var(--muted);display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.due b{font-family:'Bricolage Grotesque',sans-serif;font-size:36px;font-weight:800}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.quick button{padding:10px 4px;border:1px solid var(--border);border-radius:10px;font-weight:700;font-family:'Geist Mono',monospace;font-size:12.5px}
+.quick button:hover{border-color:var(--primary);color:var(--primary)}
+.change{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:12px;background:var(--accent-50);color:var(--accent);font-weight:700}
+.change.short{background:color-mix(in srgb,var(--danger) 8%,var(--surface));color:var(--danger)}
+.change b{font-family:'Geist Mono',monospace;font-size:16px}
+.qrbox{display:flex;flex-direction:column;align-items:center;gap:12px;padding:4px}
+.qrbox svg.qr{width:184px;height:184px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--ink)}
+.status{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--muted);font-size:13.5px}
+.status.ok{color:var(--accent)}
+.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+.cardbox{display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 0}
+.cardbox .term{width:120px;height:150px;border-radius:18px;background:var(--ink);color:var(--sun);display:grid;place-items:center}
+.rcpt{font-family:'Geist Mono',monospace;font-size:11.8px;line-height:1.6;background:var(--bg);border:1px dashed var(--border);border-radius:10px;padding:16px}
+.rcpt .c{text-align:center}
+.rcpt .r{display:flex;justify-content:space-between;gap:10px}
+.rcpt .dim{color:var(--muted)}
+.rcpt hr{border:0;border-top:1px dashed var(--muted);margin:8px 0;opacity:.45}
+.rcpt .big{font-size:14px;font-weight:600}
+.rcpt .h{font-weight:600;font-size:13px}
+.sale-stat{display:flex;gap:10px;align-items:center;padding:11px 13px;border-radius:12px;background:var(--ink);color:var(--bg);margin-bottom:12px;font-size:13px;font-weight:600}
+.sale-stat .ic{color:var(--sun)}
+.sale-stat b{color:var(--sun);font-family:'Geist Mono',monospace}
+.list-i{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px}
+.list-i .grow{flex:1;min-width:0}
+.list-i small{display:block;color:var(--muted);font-size:12px}
+.mtbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.mtbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border)}
+.mtbl td{padding:8px 0;border-bottom:1px dashed var(--border)}
+.mtbl .r{text-align:right}
+</style>
+</head>
+<body>
+
+<!-- ================= DEMO NAVIGATOR ================= -->
+<div class="nav-ov" id="navigator">
+  <div class="nav-in">
+    <div class="eyebrow">Interactive Demo</div>
+    <h1>Café &amp; Retail POS</h1>
+    <p class="nav-sub">A point-of-sale platform for cafés, restaurants, mini-marts and convenience stores — fast checkout at the counter, BIR-ready readings, and the whole business on the owner's phone. Choose a view to begin.</p>
+    <div class="nav-cards">
+      <button class="nav-card" data-go="register">
+        <span class="tag">Start here</span>
+        <span class="ni"><i data-ic="monitor" data-s="22"></i></span>
+        <h3>Cashier Register</h3>
+        <p>Ring up a sale in a few taps. Switch between Café and Retail mode, apply Senior/PWD discounts, and take cash, QR Ph or card.</p>
+        <span class="go">Open register <i data-ic="arrowr" data-s="15"></i></span>
+      </button>
+      <button class="nav-card" data-go="owner">
+        <span class="ni"><i data-ic="phone" data-s="22"></i></span>
+        <h3>Owner App</h3>
+        <p>The business in your pocket: live sales per branch, stock alerts, remote approvals, and an AI assistant you can ask anything.</p>
+        <span class="go">Open owner app <i data-ic="arrowr" data-s="15"></i></span>
+      </button>
+      <button class="nav-card" data-go="admin">
+        <span class="ni"><i data-ic="layout" data-s="22"></i></span>
+        <h3>Back-office</h3>
+        <p>Manage products, inventory, staff, loyalty members and branches — with X/Z readings generated automatically for BIR.</p>
+        <span class="go">Open back-office <i data-ic="arrowr" data-s="15"></i></span>
+      </button>
+      <button class="nav-card" data-go="customer">
+        <span class="ni"><i data-ic="qr" data-s="22"></i></span>
+        <h3>Customer QR Order</h3>
+        <p>What a diner sees after scanning the table QR: browse the menu, place an order, and earn points — no line at the counter.</p>
+        <span class="go">Open QR menu <i data-ic="arrowr" data-s="15"></i></span>
+      </button>
+    </div>
+    <div class="nav-note"><i data-ic="info" data-s="16"></i> Switch views anytime using the bar at the bottom of the screen.</div>
+  </div>
+</div>
+
+<main>
+<!-- ================= VIEW: CASHIER REGISTER ================= -->
+<section class="view" id="v-register">
+  <div class="reg">
+    <header class="reg-top">
+      <div class="reg-brand">
+        <span class="logo-mark"><i data-ic="coffee" data-s="20"></i></span>
+        <div><b>Café A</b><small>Branch 1 · Terminal 01</small></div>
+      </div>
+      <div class="seg" id="modeSeg">
+        <button class="on" data-mode="cafe"><i data-ic="coffee" data-s="15"></i>Café</button>
+        <button data-mode="retail"><i data-ic="scan" data-s="15"></i>Retail</button>
+      </div>
+      <div class="reg-top-r">
+        <button class="chip-btn" data-act="qrorders"><i data-ic="qr" data-s="15"></i><span class="lbl">QR Orders</span> <span class="cnt" id="qrCnt">0</span></button>
+        <button class="chip-btn" data-act="held"><i data-ic="pause" data-s="15"></i><span class="lbl">Held</span> <span class="cnt zero" id="heldCnt">0</span></button>
+        <div class="tapmeter" title="Taps used in the current sale"><i data-ic="pointer" data-s="15"></i><b id="tapNow">0</b> taps this sale</div>
+        <button class="chip-btn net" id="netBtn" data-act="net"></button>
+        <button class="chip-btn" data-act="shift"><i data-ic="clock" data-s="15"></i><span class="lbl">Shift ·</span> Cashier 1</button>
+      </div>
+    </header>
+    <div class="reg-body">
+      <div class="reg-left">
+        <div class="reg-tools" id="regTools"></div>
+        <div class="pgrid" id="pgrid"></div>
+      </div>
+      <aside class="ticket" id="ticket">
+        <div class="t-head">
+          <button class="icon-btn t-back" data-act="hideticket" aria-label="Back to items"><i data-ic="chevl"></i></button>
+          <div><h3 id="tNo">Order #00000142</h3><small class="muted">Cashier 1 · Terminal 01</small></div>
+          <button class="icon-btn" data-act="clear" style="margin-left:auto" title="Clear order" aria-label="Clear order"><i data-ic="trash" data-s="16"></i></button>
+        </div>
+        <div class="t-meta" id="tMeta"></div>
+        <div class="t-lines" id="tLines"></div>
+        <div class="t-disc" id="tDisc"></div>
+        <div class="t-tot" id="tTot"></div>
+        <div class="t-act">
+          <button class="btn btn-s" data-act="hold"><i data-ic="pause" data-s="16"></i>Hold</button>
+          <button class="btn btn-p charge" id="chargeBtn" data-act="charge">Charge ₱0.00</button>
+        </div>
+      </aside>
+    </div>
+    <button class="mob-order" data-act="showticket"><i data-ic="receipt"></i><span id="mobOrderTxt">No items yet</span><i data-ic="chevr"></i></button>
+  </div>
+</section>
+
+<!-- ================= VIEW: OWNER APP (device-framed) ================= -->
+<section class="view" id="v-owner">
+  <div class="owner-canvas">
+    <div class="owner-cap">
+      <div class="eyebrow">Owner App</div>
+      <h2>Your whole store, in your pocket.</h2>
+      <p>Owners don't need to stand at the counter to know how the day is going. Every sale, alert and approval reaches their phone in real time.</p>
+      <ul class="cap-list">
+        <li><i data-ic="chart"></i>Live sales across every branch</li>
+        <li><i data-ic="sparkles"></i>An AI assistant that answers in plain language</li>
+        <li><i data-ic="shield"></i>Approve voids and refunds remotely</li>
+        <li><i data-ic="receipt"></i>Z-readings generated automatically at closing</li>
+      </ul>
+      <div class="cap-hint"><i data-ic="pointer" data-s="16"></i>Open the Ask tab and tap a suggested question.</div>
+    </div>
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="oa-status"><span>9:41</span><span><i data-ic="wifi" data-s="14"></i><i data-ic="battery" data-s="16"></i></span></div>
+        <div class="oa-head">
+          <div><small id="oaSub">Tuesday · All branches</small><h3 id="oaTitle">Good morning, Owner</h3></div>
+          <button class="icon-btn" data-oatab="alerts" aria-label="Alerts"><i data-ic="bell" data-s="17"></i><span class="dot" id="oaBellDot"></span></button>
+        </div>
+        <div class="oa-body" id="oaBody">
+          <!-- Home -->
+          <div class="oa-pane on" id="oa-home">
+            <div class="oa-chips">
+              <button class="chip on" data-oab="all">All branches</button>
+              <button class="chip" data-oab="b1">Branch 1</button>
+              <button class="chip" data-oab="b2">Branch 2</button>
+              <button class="chip" data-oab="b3">Branch 3</button>
+            </div>
+            <div class="oa-card oa-hero">
+              <small>Sales today · as of 11:02 AM</small>
+              <div class="big" id="oaSales">₱48,320</div>
+              <span class="up"><i data-ic="trend" data-s="14"></i><span id="oaUp">12%</span> vs last Tuesday</span>
+              <div class="oa-mini">
+                <div><b id="oaTx">214</b><small>Transactions</small></div>
+                <div><b id="oaAvg">₱226</b><small>Avg ticket</small></div>
+                <div><b id="oaVoid">1</b><small>Pending void</small></div>
+              </div>
+            </div>
+            <div class="oa-card oa-appr" id="oaApproval">
+              <div class="oa-ttl"><h4>Needs your approval</h4><span class="badge b-info">Void</span></div>
+              <div class="oa-row"><div class="oa-ic tint-1"><i data-ic="receipt" data-s="17"></i></div><div class="grow"><b>Invoice 00000137 · ₱160.00</b><small>Cashier 1 · Branch 1 · "Customer changed order"</small></div></div>
+              <div class="btns"><button class="btn btn-s" data-act="oadecline">Decline</button><button class="btn btn-p" data-act="oaapprove">Approve</button></div>
+            </div>
+            <div class="oa-card">
+              <div class="oa-ttl"><h4>Branches</h4><small class="muted">Live</small></div>
+              <div class="oa-row"><span class="sdot"></span><div class="grow"><b>Branch 1</b><small>Open since 6:55 AM · 2 cashiers</small></div><span class="num">₱21,450</span></div>
+              <div class="oa-row"><span class="sdot"></span><div class="grow"><b>Branch 2</b><small>Open since 6:58 AM · 1 cashier</small></div><span class="num">₱15,870</span></div>
+              <div class="oa-row"><span class="sdot"></span><div class="grow"><b>Branch 3 · Grab &amp; Go</b><small>Open since 7:00 AM · 1 cashier</small></div><span class="num">₱11,000</span></div>
+            </div>
+            <div class="oa-card">
+              <div class="oa-ttl"><h4>Running low</h4><button class="lnk" data-toast="Transfer drafted: 6 L oat milk from Branch 2 to Branch 1">Draft transfer</button></div>
+              <div class="oa-row"><div class="oa-ic tint-2"><i data-ic="package" data-s="16"></i></div><div class="grow"><b>Oat milk</b><small>Branch 1 · 3 L left</small></div><span class="badge b-warn">Low</span></div>
+              <div class="oa-row"><div class="oa-ic tint-2"><i data-ic="package" data-s="16"></i></div><div class="grow"><b>Croissant dough</b><small>Branch 2 · 1 tray left</small></div><span class="badge b-warn">Low</span></div>
+              <div class="oa-row"><div class="oa-ic tint-1"><i data-ic="package" data-s="16"></i></div><div class="grow"><b>Rice 1kg</b><small>Branch 3 · 0 pcs</small></div><span class="badge b-bad">Out</span></div>
+            </div>
+          </div>
+          <!-- Ask -->
+          <div class="oa-pane" id="oa-ask"><div class="chat" id="chat"></div></div>
+          <!-- Alerts -->
+          <div class="oa-pane" id="oa-alerts">
+            <div class="oa-ttl" style="margin:2px 0 8px"><h4>Today</h4><button class="lnk" data-act="oaread">Mark all read</button></div>
+            <div class="oa-card" style="padding:4px 14px">
+              <div class="oa-row oa-alert unread"><div class="oa-ic tint-1"><i data-ic="shield" data-s="16"></i></div><div class="grow"><b>Void request</b><small>Cashier 1 · Invoice 00000137 · ₱160.00 · 10:34 AM</small></div></div>
+              <div class="oa-row oa-alert unread"><div class="oa-ic tint-2"><i data-ic="package" data-s="16"></i></div><div class="grow"><b>Low stock: Oat milk</b><small>Branch 1 · 3 L left · 9:58 AM</small></div></div>
+              <div class="oa-row oa-alert unread"><div class="oa-ic tint-1"><i data-ic="package" data-s="16"></i></div><div class="grow"><b>Out of stock: Rice 1kg</b><small>Branch 3 · 9:12 AM</small></div></div>
+              <div class="oa-row oa-alert"><div class="oa-ic tint-3"><i data-ic="store" data-s="16"></i></div><div class="grow"><b>All branches open</b><small>Last to open: Branch 3 · 7:00 AM</small></div></div>
+            </div>
+            <div class="oa-ttl" style="margin:12px 0 8px"><h4>Yesterday</h4></div>
+            <div class="oa-card" style="padding:4px 14px">
+              <div class="oa-row oa-alert"><div class="oa-ic tint-3"><i data-ic="receipt" data-s="16"></i></div><div class="grow"><b>Z-Readings complete</b><small>3 of 3 branches · auto-generated at closing</small></div></div>
+              <div class="oa-row oa-alert"><div class="oa-ic tint-4"><i data-ic="chart" data-s="16"></i></div><div class="grow"><b>Daily summary ready</b><small>Mon · ₱44,180 · 198 transactions</small></div></div>
+            </div>
+          </div>
+          <!-- Reports -->
+          <div class="oa-pane" id="oa-reports">
+            <div class="oa-card">
+              <div class="oa-ttl"><h4>Sales this week</h4><span class="badge b-ok">+9% vs last week</span></div>
+              <div class="wbars" id="oaWeek"></div>
+            </div>
+            <div class="oa-card">
+              <div class="oa-ttl"><h4>Top sellers today</h4></div>
+              <div class="oa-row"><span class="ti tint-1" style="width:30px;height:30px;font-size:11px">SL</span><div class="grow"><b>Spanish Latte</b><small>64 sold</small></div><span class="num">₱10,560</span></div>
+              <div class="oa-row"><span class="ti tint-4" style="width:30px;height:30px;font-size:11px">TS</span><div class="grow"><b>Tapa Silog</b><small>22 sold</small></div><span class="num">₱5,280</span></div>
+              <div class="oa-row"><span class="ti tint-2" style="width:30px;height:30px;font-size:11px">EN</span><div class="grow"><b>Ensaymada</b><small>48 sold</small></div><span class="num">₱3,600</span></div>
+            </div>
+            <div class="oa-card">
+              <div class="oa-ttl"><h4>Payment mix</h4></div>
+              <div class="oa-row" style="display:block"><div style="display:flex;justify-content:space-between"><b>Cash</b><span class="num">52%</span></div><div class="mix"><div style="width:52%;background:var(--ink)"></div></div></div>
+              <div class="oa-row" style="display:block"><div style="display:flex;justify-content:space-between"><b>QR Ph</b><span class="num">34%</span></div><div class="mix"><div style="width:34%;background:var(--primary)"></div></div></div>
+              <div class="oa-row" style="display:block"><div style="display:flex;justify-content:space-between"><b>Card</b><span class="num">14%</span></div><div class="mix"><div style="width:14%;background:var(--sun)"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <form class="chatbar" id="chatbar" autocomplete="off">
+          <input id="chatIn" placeholder="Ask about sales, stock, staff...">
+          <button type="submit" aria-label="Send"><i data-ic="send" data-s="17"></i></button>
+        </form>
+        <nav class="oa-tabs">
+          <button class="on" data-oatab="home"><i data-ic="home" data-s="20"></i>Home</button>
+          <button data-oatab="ask"><i data-ic="sparkles" data-s="20"></i>Ask</button>
+          <button data-oatab="alerts"><i data-ic="bell" data-s="20"></i>Alerts<span class="oa-dot" id="oaTabDot"></span></button>
+          <button data-oatab="reports"><i data-ic="chart" data-s="20"></i>Reports</button>
+        </nav>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= VIEW: BACK-OFFICE ================= -->
+<section class="view" id="v-admin">
+  <div class="bo">
+    <aside class="bo-side" id="boSide">
+      <div class="bo-brand"><span class="logo-mark"><i data-ic="coffee" data-s="19"></i></span><div><b>Café A</b><small>Back-office · 3 branches</small></div></div>
+      <div class="bo-grp">Main</div>
+      <button class="bo-link on" data-page="dashboard"><i data-ic="layout" data-s="17"></i>Dashboard</button>
+      <button class="bo-link" data-page="sales"><i data-ic="receipt" data-s="17"></i>Sales</button>
+      <button class="bo-link" data-page="products"><i data-ic="tag" data-s="17"></i>Products</button>
+      <button class="bo-link" data-page="inventory"><i data-ic="package" data-s="17"></i>Inventory<span class="pill">4</span></button>
+      <div class="bo-grp">People</div>
+      <button class="bo-link" data-page="staff"><i data-ic="users" data-s="17"></i>Staff &amp; Shifts</button>
+      <button class="bo-link" data-page="customers"><i data-ic="gift" data-s="17"></i>Customers &amp; Loyalty</button>
+      <div class="bo-grp">Compliance</div>
+      <button class="bo-link" data-page="bir"><i data-ic="file" data-s="17"></i>BIR Readings<span class="pill">Auto</span></button>
+      <div class="bo-grp">Business</div>
+      <button class="bo-link" data-page="branches"><i data-ic="building" data-s="17"></i>Branches</button>
+      <button class="bo-link" data-page="setup"><i data-ic="checkc" data-s="17"></i>Get Started<span class="pill" id="setupPill">3 left</span></button>
+      <button class="bo-link" data-page="settings"><i data-ic="sliders" data-s="17"></i>Settings</button>
+      <button class="bo-link" data-page="users"><i data-ic="user" data-s="17"></i>Users &amp; Roles</button>
+      <div class="bo-side-foot"><span class="avatar">SU</span><div><b>Sample User</b><small>Owner</small></div></div>
+    </aside>
+    <div class="bo-main">
+      <div class="bo-top">
+        <button class="icon-btn bo-burger" data-act="boside" aria-label="Open menu"><i data-ic="menu"></i></button>
+        <h2 id="boTitle">Dashboard</h2>
+        <label class="bo-search"><i data-ic="search" data-s="16"></i><input placeholder="Search invoices, items, members..."></label>
+        <button class="icon-btn" data-toast="3 new alerts: 1 void request, 2 low-stock items" aria-label="Notifications"><i data-ic="bell" data-s="17"></i><span class="dot"></span></button>
+        <span class="avatar">SU</span>
+      </div>
+      <div class="bo-page" id="boPage"></div>
+    </div>
+  </div>
+  <div class="bo-backdrop" id="boBackdrop" data-act="boclose"></div>
+</section>
+
+<!-- ================= VIEW: CUSTOMER QR ORDER ================= -->
+<section class="view" id="v-customer">
+  <div class="cx">
+    <header class="cx-nav">
+      <div class="cx-nav-in">
+        <div class="cx-logo"><span class="logo-mark"><i data-ic="coffee" data-s="19"></i></span>Café A</div>
+        <nav class="cx-links">
+          <button data-scroll="menu">Menu</button>
+          <button data-scroll="how">How it works</button>
+          <button data-scroll="rewards">Rewards</button>
+          <button data-scroll="visit">Visit us</button>
+        </nav>
+        <button class="btn btn-p cx-cta" data-scroll="menu"><i data-ic="bag" data-s="16"></i>Order now</button>
+        <button class="icon-btn cx-burger" data-act="cxmenu" aria-label="Open menu"><i data-ic="menu"></i></button>
+      </div>
+      <div class="cx-mob" id="cxMob">
+        <button data-scroll="menu">Menu</button>
+        <button data-scroll="how">How it works</button>
+        <button data-scroll="rewards">Rewards</button>
+        <button data-scroll="visit">Visit us</button>
+      </div>
+    </header>
+
+    <section class="cx-hero">
+      <div>
+        <span class="table-badge"><span class="live"></span>You're at Table 5 · Branch 1</span>
+        <h1>Order from your table. <em>Skip the line.</em></h1>
+        <p>Browse the full menu, customize your drink, and send your order straight to our baristas. Pay at the counter or with QR Ph — and earn points on every order.</p>
+        <div class="acts">
+          <button class="btn btn-p" data-scroll="menu"><i data-ic="bag" data-s="17"></i>Start your order</button>
+          <button class="btn btn-s" data-scroll="rewards"><i data-ic="gift" data-s="17"></i>Join Rewards</button>
+        </div>
+      </div>
+      <div class="cx-art">
+        <span class="ring" style="width:78%;height:78%"></span>
+        <span class="ring" style="width:100%;height:100%"></span>
+        <div class="cup"><i data-ic="coffee" data-s="88"></i></div>
+        <div class="float" style="top:9%;left:7%"><i data-ic="checkc" data-s="18"></i><div>Order A-0140<small>Preparing · Table 2</small></div></div>
+        <div class="float" style="bottom:11%;right:7%"><i data-ic="star" data-s="18"></i><div>+16 points<small>Earned on this order</small></div></div>
+      </div>
+    </section>
+
+    <section class="cx-sec" id="cx-why" style="padding-top:20px">
+      <div class="vals">
+        <div class="val"><div class="vi"><i data-ic="zap" data-s="22"></i></div><h3>No waiting in line</h3><p>Your order goes straight to the bar the moment you place it. We bring it to your table.</p></div>
+        <div class="val"><div class="vi"><i data-ic="card" data-s="22"></i></div><h3>Pay your way</h3><p>Settle at the counter with cash or card, or pay right from your phone with QR Ph.</p></div>
+        <div class="val"><div class="vi"><i data-ic="gift" data-s="22"></i></div><h3>Points on every cup</h3><p>Members earn 1 point for every ₱100. Redeem points for free drinks and pastries.</p></div>
+      </div>
+    </section>
+
+    <section class="cx-sec" id="cx-menu">
+      <div class="sec-h"><div class="eyebrow">Menu</div><h2>What are you having?</h2><p>Tap + to add. Drinks can be customized at the counter or in your order notes.</p></div>
+      <div class="menu-tabs" id="cxTabs"></div>
+      <div class="menu" id="cxMenu"></div>
+    </section>
+
+    <section class="cx-sec" id="cx-how">
+      <div class="sec-h"><div class="eyebrow">How it works</div><h2>Three taps to your coffee</h2></div>
+      <div class="steps">
+        <div class="step"><div class="sn">1</div><h3>Pick your favorites</h3><p>Browse the menu and add items to your order — right from your seat.</p></div>
+        <div class="step"><div class="sn">2</div><h3>Place your order</h3><p>Add notes like less sugar or oat milk, then send it to the counter.</p></div>
+        <div class="step"><div class="sn">3</div><h3>We bring it over</h3><p>Our team prepares your order and serves it at your table.</p></div>
+      </div>
+    </section>
+
+    <section class="cx-sec" id="cx-rewards">
+      <div class="rewards">
+        <div>
+          <div class="eyebrow">Café A Rewards</div>
+          <h2>Get 20 bonus points when you join today.</h2>
+          <p>Sign up with your mobile number. Show it at the counter or link it to your QR orders, and every peso counts toward your next free drink.</p>
+          <div class="rw-perks">
+            <div><i data-ic="star" data-s="17"></i>1 point per ₱100</div>
+            <div><i data-ic="gift" data-s="17"></i>Free birthday drink</div>
+            <div><i data-ic="tag" data-s="17"></i>Member-only promos</div>
+          </div>
+        </div>
+        <form class="rw-form" id="rwForm" autocomplete="off">
+          <h3>Join Rewards</h3>
+          <div class="field"><label>Name</label><input class="input" id="rwName" placeholder="Sample Customer"></div>
+          <div class="field"><label>Mobile number</label><input class="input" id="rwPhone" placeholder="09XX XXX XXXX"></div>
+          <button class="btn btn-p" type="submit" style="width:100%"><i data-ic="userplus" data-s="16"></i>Sign up for Rewards</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="cx-sec" id="cx-visit">
+      <div class="sec-h"><div class="eyebrow">Visit us</div><h2>Three branches, same great cup</h2></div>
+      <div class="visit">
+        <div class="vcard"><div class="vi"><i data-ic="pin" data-s="19"></i></div><div><b>Branch 1</b><p>123 Sample Street, Brgy. Sample, Sample City</p></div></div>
+        <div class="vcard"><div class="vi"><i data-ic="clock" data-s="19"></i></div><div><b>Open daily</b><p>7:00 AM – 10:00 PM<br>Kitchen closes at 9:30 PM</p></div></div>
+        <div class="vcard"><div class="vi"><i data-ic="mail" data-s="19"></i></div><div><b>Get in touch</b><p>hello@companya.example<br>0917 000 0000</p></div></div>
+      </div>
+    </section>
+
+    <footer class="cx-foot">
+      <div class="cx-foot-in">
+        <div class="cx-logo"><span class="logo-mark"><i data-ic="coffee" data-s="18"></i></span>Café A</div>
+        <nav><button data-scroll="menu">Menu</button><button data-scroll="how">How it works</button><button data-scroll="rewards">Rewards</button><button data-scroll="visit">Visit us</button></nav>
+        <span>© 2026 Company A. All rights reserved.</span>
+      </div>
+    </footer>
+
+    <button class="cartbar" id="cartbar" data-act="cxopen"><span class="cb-n" id="cbN">0</span>View your order<span class="t" id="cbT">₱0.00</span><i data-ic="chevr" data-s="18"></i></button>
+    <div class="sheet-back" id="sheetBack" data-act="cxclose"></div>
+    <div class="sheet" id="sheet">
+      <div class="sheet-h"><div><h3>Your order</h3><small class="muted">Table 5 · Branch 1</small></div><button class="icon-btn" data-act="cxclose" aria-label="Close"><i data-ic="x"></i></button></div>
+      <div class="sheet-b" id="sheetBody"></div>
+      <div class="sheet-f">
+        <div class="payopt"><button class="on" data-cpay="counter"><i data-ic="cash" data-s="16"></i>Pay at counter</button><button data-cpay="qr"><i data-ic="qr" data-s="16"></i>Pay with QR Ph</button></div>
+        <button class="btn btn-p" data-act="cplace" style="width:100%;padding:14px;font-size:15px" id="cxPlace">Place order · ₱0.00</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ================= VIEW SWITCHER & ATTRIBUTION ================= -->
+<div id="switcher">
+  <button data-act="menu" title="Back to demo menu"><i data-ic="grid" data-s="16"></i><span>Menu</span></button>
+  <button data-v="register" title="Cashier Register"><i data-ic="monitor" data-s="16"></i><span>Register</span></button>
+  <button data-v="owner" title="Owner App"><i data-ic="phone" data-s="16"></i><span>Owner App</span></button>
+  <button data-v="admin" title="Back-office"><i data-ic="layout" data-s="16"></i><span>Back-office</span></button>
+  <button data-v="customer" title="Customer QR Order"><i data-ic="qr" data-s="16"></i><span>QR Order</span></button>
+</div>
+<a id="attr" href="https://theloftitsolutions.com" target="_blank" rel="noopener">Powered by The Loft IT Solutions</a>
+
+<div class="modal-wrap" id="modalWrap">
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="m-head"><h3 id="mTitle">Title</h3><button class="icon-btn" data-act="mclose" aria-label="Close"><i data-ic="x"></i></button></div>
+    <div class="m-body" id="mBody"></div>
+    <div class="m-foot" id="mFoot"></div>
+  </div>
+</div>
+<div id="toasts"></div>
+
+<script>
+/* ============================================================
+   Icons (SVG line icons, Section 5.5)
+   ============================================================ */
+var ICONS={
+menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+x:'<path d="M18 6 6 18M6 6l12 12"/>',
+monitor:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+phone:'<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>',
+layout:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',
+minus:'<path d="M5 12h14"/>',
+trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+users:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 3.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-5-6.7"/>',
+userplus:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/>',
+coffee:'<path d="M17 8h1a4 4 0 0 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2M10 2v2M14 2v2"/>',
+store:'<path d="M3 9 4.5 4h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/>',
+package:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
+chart:'<path d="M3 3v18h18"/><path d="M7 16v-5M12 16V8M17 16v-8"/>',
+trend:'<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+receipt:'<path d="M5 2h14v20l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/>',
+file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+sliders:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/>',
+check:'<path d="M20 6 9 17l-5-5"/>',
+checkc:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+alert:'<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+wifi:'<path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01"/>',
+wifioff:'<path d="M2 2l20 20M8.5 16a5 5 0 0 1 7 0M5 12.5a10 10 0 0 1 4.5-2.6M2 8.8a15 15 0 0 1 4.4-2.8M14.5 9.6A10 10 0 0 1 19 12.5M17.6 6A15 15 0 0 1 22 8.8M12 19.5h.01"/>',
+battery:'<rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2M6 10v4M10 10v4"/>',
+clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+tag:'<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+percent:'<path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+card:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/>',
+cash:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
+scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/>',
+send:'<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>',
+sparkles:'<path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.8z"/>',
+home:'<path d="M3 11 12 3l9 8M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
+chevl:'<path d="m15 18-6-6 6-6"/>',
+chevr:'<path d="m9 18 6-6-6-6"/>',
+arrowr:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+pin:'<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+star:'<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>',
+gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13M12 8S10.5 3 8 3a2.5 2.5 0 0 0 0 5M12 8s1.5-5 4-5a2.5 2.5 0 0 1 0 5"/>',
+printer:'<path d="M6 9V2h12v7"/><rect x="2" y="9" width="20" height="8" rx="2"/><path d="M6 14h12v8H6z"/>',
+pause:'<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+building:'<rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
+eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+zap:'<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
+mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/>',
+grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+pointer:'<path d="M9 11V5a2 2 0 0 1 4 0v5M13 10V8a2 2 0 0 1 4 0v3M17 11a2 2 0 0 1 4 0v3a8 8 0 0 1-8 8h-1a7 7 0 0 1-5.6-2.8L3.5 15.4a2 2 0 0 1 3-2.6L9 15V11"/>',
+sync:'<path d="M21 12a9 9 0 0 1-15.5 6.3L3 16M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5M3 21v-5h5"/>',
+download:'<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+bag:'<path d="M6 7h12l1 14H5z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
+info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+transfer:'<path d="M4 7h14l-3-3M20 17H6l3 3"/>'
+};
+function ic(n,s){s=s||18;return '<svg class="ic" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[n]||'')+'</svg>';}
+function hydrate(root){(root||document).querySelectorAll('i[data-ic]').forEach(function(el){el.outerHTML=ic(el.dataset.ic,+el.dataset.s||18);});}
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+var $=function(s){return document.querySelector(s);};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s));};
+function pad(n,l){return String(n).padStart(l||8,'0');}
+function money(n){var v=Math.round(n*100)/100;var neg=v<0;v=Math.abs(v);var p=v.toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');return (neg?'-':'')+'₱'+p[0]+'.'+p[1];}
+function money0(n){return money(n).replace('.00','');}
+function initials(n){return n.replace(/[^A-Za-z ]/g,'').split(' ').filter(Boolean).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();}
+function clock(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+function today(){return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function badge(t){var map={Completed:'b-ok','In stock':'b-ok','On shift':'b-ok',Active:'b-ok',Open:'b-ok',Registered:'b-ok',Generated:'b-ok',Gold:'b-warn',Silver:'b-n',Bronze:'b-info',Low:'b-warn',Hidden:'b-n','Off shift':'b-n',Invited:'b-info',Voided:'b-bad',Refunded:'b-warn',Out:'b-bad','Sent to owner':'b-info'};return '<span class="badge '+(map[t]||'b-n')+'">'+t+'</span>';}
+
+function toast(msg,type){var t=document.createElement('div');t.className='toast '+(type||'');t.innerHTML=ic(type==='warn'?'alert':'checkc',18)+'<span>'+msg+'</span>';$('#toasts').appendChild(t);setTimeout(function(){t.classList.add('out');},2700);setTimeout(function(){t.remove();},3050);}
+
+var payTimer=null;
+function openModal(o){$('#mTitle').textContent=o.title;$('#mBody').innerHTML=o.body;$('#mFoot').innerHTML=o.foot||'';$('#modal').className='modal'+(o.cls?' '+o.cls:'');$('#modalWrap').classList.add('open');$('#mBody').scrollTop=0;}
+function closeModal(){$('#modalWrap').classList.remove('open');clearTimeout(payTimer);if(S.awaitNew){newSale();}}
+
+/* ============================================================
+   Data (generic sample data only)
+   ============================================================ */
+var CAFE=[
+{id:'c1',n:'Americano',c:'Coffee',p:120,m:1,d:'Double shot, hot or iced'},
+{id:'c2',n:'Café Latte',c:'Coffee',p:150,m:1,d:'Espresso with steamed milk'},
+{id:'c3',n:'Spanish Latte',c:'Coffee',p:165,m:1,d:'Sweet, creamy, house favorite'},
+{id:'c4',n:'Caramel Macchiato',c:'Coffee',p:175,m:1,d:'Vanilla, milk, caramel drizzle'},
+{id:'c5',n:'Mocha',c:'Coffee',p:170,m:1,d:'Espresso and dark chocolate'},
+{id:'c6',n:'Cold Brew',c:'Coffee',p:160,m:1,d:'Steeped for 18 hours'},
+{id:'n1',n:'Matcha Latte',c:'Non-Coffee',p:170,m:1,d:'Stone-ground green tea'},
+{id:'n2',n:'Hot Chocolate',c:'Non-Coffee',p:140,m:1,d:'Rich tablea chocolate'},
+{id:'n3',n:'Calamansi Juice',c:'Non-Coffee',p:95,d:'Freshly squeezed'},
+{id:'n4',n:'Iced Tea',c:'Non-Coffee',p:85,d:'House-brewed, lightly sweet'},
+{id:'p1',n:'Ensaymada',c:'Pastries',p:75,d:'Buttery, topped with cheese'},
+{id:'p2',n:'Banana Bread',c:'Pastries',p:90,d:'Moist, baked daily'},
+{id:'p3',n:'Butter Croissant',c:'Pastries',p:110,d:'Flaky, all-butter'},
+{id:'p4',n:'Cheese Pandesal',c:'Pastries',p:120,d:'Six pieces, served warm'},
+{id:'m1',n:'Chicken Adobo Bowl',c:'Meals',p:220,d:'Garlic rice and soft egg'},
+{id:'m2',n:'Tapa Silog',c:'Meals',p:240,d:'Beef tapa, sinangag, egg'},
+{id:'m3',n:'Ham & Cheese Panini',c:'Meals',p:195,d:'Pressed, with side salad'},
+{id:'m4',n:'Creamy Carbonara',c:'Meals',p:210,d:'Bacon, parmesan, garlic bread'}];
+var CAFE_CATS=['All','Coffee','Non-Coffee','Pastries','Meals'];
+var RETAIL=[
+{id:'r1',n:'Bottled Water 500ml',c:'Beverages',p:20,b:'4800000000011'},
+{id:'r2',n:'Soft Drink 1.5L',c:'Beverages',p:75,b:'4800000000028'},
+{id:'r3',n:'Instant Coffee 3-in-1 10s',c:'Beverages',p:95,b:'4800000000035'},
+{id:'r4',n:'Instant Noodles 70g',c:'Pantry',p:16,b:'4800000000042'},
+{id:'r5',n:'Canned Tuna 155g',c:'Pantry',p:38,b:'4800000000059'},
+{id:'r6',n:'Rice 1kg',c:'Pantry',p:58,b:'4800000000066'},
+{id:'r7',n:'Cooking Oil 1L',c:'Pantry',p:125,b:'4800000000073'},
+{id:'r8',n:'White Bread Loaf',c:'Fresh',p:68,b:'4800000000080'},
+{id:'r9',n:'Fresh Eggs (12)',c:'Fresh',p:110,b:'4800000000097'},
+{id:'r10',n:'Laundry Powder 1kg',c:'Household',p:89,b:'4800000000103'},
+{id:'r11',n:'Toothpaste 150g',c:'Household',p:85,b:'4800000000110'},
+{id:'r12',n:'Bar Soap 135g',c:'Household',p:42,b:'4800000000127'}];
+var RETAIL_CATS=['All','Beverages','Pantry','Fresh','Household'];
+var TINT={Coffee:1,'Non-Coffee':3,Pastries:2,Meals:4,Beverages:3,Pantry:2,Fresh:1,Household:4};
+CAFE.forEach(function(i){i.type='Café menu';i.status='Active';});
+RETAIL.forEach(function(i){i.type='Retail';i.status='Active';});
+CAFE[17].status='Hidden';RETAIL[10].status='Hidden';
+var PRODUCTS=CAFE.concat(RETAIL);
+var MODS=[{g:'Size',o:[['Regular',0],['Large',30]]},{g:'Milk',o:[['Whole',0],['Oat',35],['None',0]]},{g:'Sugar',o:[['100%',0],['50%',0],['0%',0]]},{g:'Add-ons',multi:1,o:[['Extra shot',40],['Vanilla syrup',25]]}];
+var MEMBERS=[
+{n:'Member A',ph:'0917 000 0012',pts:120,tier:'Silver',visits:18,last:'Today'},
+{n:'Member B',ph:'0917 000 0045',pts:342,tier:'Gold',visits:51,last:'Yesterday'},
+{n:'Member C',ph:'0917 000 0078',pts:36,tier:'Bronze',visits:4,last:'Oct 15'},
+{n:'Member D',ph:'0917 000 0101',pts:215,tier:'Silver',visits:27,last:'Oct 18'},
+{n:'Member E',ph:'0917 000 0134',pts:508,tier:'Gold',visits:76,last:'Today'},
+{n:'Member F',ph:'0917 000 0167',pts:12,tier:'Bronze',visits:2,last:'Oct 12'},
+{n:'Member G',ph:'0917 000 0190',pts:164,tier:'Silver',visits:21,last:'Oct 17'},
+{n:'Member H',ph:'0917 000 0223',pts:58,tier:'Bronze',visits:7,last:'Oct 19'}];
+
+/* ============================================================
+   Register state & logic
+   ============================================================ */
+var S={mode:'cafe',cat:'All',lines:[],otype:'Dine-in',table:'Table 5',cust:null,disc:null,taps:0,start:null,inv:142,held:[],qr:[],offline:false,queued:0,nq:1,awaitNew:false};
+S.qr.push({no:'A-0141',table:'Table 3',name:'Guest',at:'10:52 AM',pay:'Pay at counter',lines:[{key:'c3|',id:'c3',n:'Spanish Latte',price:165,qty:2,mods:''},{key:'p1|',id:'p1',n:'Ensaymada',price:75,qty:1,mods:''}]});
+var SHIFT={gross:8450,sc:120,promo:0,exempt:600,vatable:6944.64,vat:833.36,tx:38,cash:5200,qr:2350,card:900,voids:1,beg:104};
+var cur='register';
+
+function items(){return S.mode==='cafe'?CAFE:RETAIL;}
+function cats(){return S.mode==='cafe'?CAFE_CATS:RETAIL_CATS;}
+function findItem(id){return PRODUCTS.filter(function(i){return i.id===id;})[0];}
+
+function calc(lines,disc){
+  var gross=lines.reduce(function(s,l){return s+l.price*l.qty;},0);
+  var r={gross:gross,vatable:0,vat:0,exempt:0,vatRemoved:0,discount:0,total:0,label:''};
+  if(disc&&disc.type==='sc'){
+    var share=disc.eligible/disc.diners,elig=gross*share,non=gross-elig;
+    r.exempt=elig/1.12;r.vatRemoved=elig-r.exempt;r.discount=r.exempt*0.2;
+    r.vatable=non/1.12;r.vat=non-r.vatable;r.total=non+r.exempt-r.discount;
+    r.label='Senior/PWD 20% ('+disc.eligible+' of '+disc.diners+')';
+  }else if(disc&&disc.type==='promo'){
+    r.discount=gross*0.1;r.total=gross-r.discount;r.vatable=r.total/1.12;r.vat=r.total-r.vatable;r.label='Promo 10%';
+  }else{r.total=gross;r.vatable=gross/1.12;r.vat=gross-r.vatable;}
+  return r;
+}
+
+function renderTools(){
+  var h='';
+  if(S.mode==='retail'){
+    h+='<div class="scanbar">'+ic('scan',20)+'<input id="scanIn" class="mono" placeholder="Scan or type a barcode, then press Enter" autocomplete="off"><button class="btn btn-p" data-act="simscan">'+ic('zap',16)+'Simulate scan</button></div>';
+    h+='<div class="qtyrow"><span>Next item qty</span><div class="chips" id="qtyChips">'+[1,2,3,6,12].map(function(q){return '<button class="chip'+(S.nq===q?' on':'')+'" data-q="'+q+'">×'+q+'</button>';}).join('')+'</div></div>';
+  }
+  h+='<div class="chips">'+cats().map(function(c){return '<button class="chip'+(S.cat===c?' on':'')+'" data-cat="'+c+'">'+c+'</button>';}).join('')+'</div>';
+  $('#regTools').innerHTML=h;
+}
+function renderGrid(){
+  var list=items().filter(function(i){return i.status!=='Hidden'&&(S.cat==='All'||i.c===S.cat);});
+  $('#pgrid').innerHTML=list.map(function(i){
+    return '<button class="tile" data-item="'+i.id+'"><span class="ti tint-'+TINT[i.c]+'">'+initials(i.n)+'</span>'+(S.mode==='cafe'&&i.m?'<span class="tm">Options</span>':'')+'<span class="tn">'+i.n+'</span>'+(i.b?'<span class="bc mono">'+i.b+'</span>':'')+'<span class="tp">'+money(i.p)+'</span></button>';
+  }).join('');
+}
+function addLine(it,mods,extra,qty){
+  mods=mods||'';extra=extra||0;qty=qty||1;
+  var key=it.id+'|'+mods,ex=S.lines.filter(function(l){return l.key===key;})[0];
+  if(ex){ex.qty+=qty;}else{S.lines.push({key:key,id:it.id,n:it.n,price:it.p+extra,qty:qty,mods:mods});}
+  if(!S.start){S.start=Date.now();}
+  if(S.nq!==1){S.nq=1;$$('#qtyChips .chip').forEach(function(c){c.classList.toggle('on',c.dataset.q==='1');});}
+  renderTicket();
+}
+function renderTicket(){
+  $('#tNo').textContent='Order #'+pad(S.inv);
+  var m='';
+  if(S.mode==='cafe'){
+    m+='<div class="seg sm">'+['Dine-in','Takeout'].map(function(o){return '<button data-otype="'+o+'" class="'+(S.otype===o?'on':'')+'">'+o+'</button>';}).join('')+'</div>';
+    if(S.otype==='Dine-in'){m+='<select class="sel" id="tableSel">'+[1,2,3,4,5,6,7,8].map(function(n){var t='Table '+n;return '<option'+(S.table===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select>';}
+  }else{m+='<span class="badge b-n">'+ic('store',13)+'Walk-in</span>';}
+  m+='<button class="chip-btn" data-act="member">'+ic('user',15)+(S.cust?S.cust.n+' · '+S.cust.pts+' pts':'Add member')+'</button>';
+  $('#tMeta').innerHTML=m;
+  if(!S.lines.length){
+    $('#tLines').innerHTML='<div class="t-empty"><span class="ei">'+ic(S.mode==='cafe'?'coffee':'scan',26)+'</span><b>No items yet</b><span>'+(S.mode==='cafe'?'Tap an item to start a sale.':'Scan a barcode or tap an item to start.')+'</span></div>';
+  }else{
+    $('#tLines').innerHTML=S.lines.map(function(l,i){
+      return '<div class="line"><div><div class="ln">'+l.n+'</div>'+(l.mods?'<div class="lm">'+l.mods+'</div>':'')+'<div class="lu">'+money(l.price)+' each</div></div><div class="lt">'+money(l.price*l.qty)+'</div><div class="qty"><button data-i="'+i+'" data-d="-1" aria-label="Decrease">'+ic(l.qty>1?'minus':'trash',14)+'</button><span>'+l.qty+'</span><button data-i="'+i+'" data-d="1" aria-label="Increase">'+ic('plus',14)+'</button></div></div>';
+    }).join('');
+  }
+  var sc=S.disc&&S.disc.type==='sc',pr=S.disc&&S.disc.type==='promo';
+  $('#tDisc').innerHTML='<button class="chip'+(sc?' on-p':'')+'" data-act="sc">'+ic('percent',14)+'Senior/PWD</button><button class="chip'+(pr?' on-p':'')+'" data-act="promo">'+ic('tag',14)+'Promo 10%</button>'+(S.disc?'<button class="chip" data-act="nodisc">'+ic('x',14)+'Remove</button>':'');
+  var r=calc(S.lines,S.disc),t='<div class="r"><span>Subtotal</span><b>'+money(r.gross)+'</b></div>';
+  if(sc){t+='<div class="r dsc"><span>VAT exemption</span><b>-'+money(r.vatRemoved)+'</b></div>';}
+  if(S.disc){t+='<div class="r dsc"><span>'+r.label+'</span><b>-'+money(r.discount)+'</b></div>';}
+  t+='<div class="r"><span>VAT (12%, included)</span><b>'+money(r.vat)+'</b></div>';
+  if(S.cust&&S.lines.length){t+='<div class="r pts"><span>Points to earn</span><span>+'+Math.floor(r.total/100)+' pts</span></div>';}
+  t+='<div class="r grand"><span>Total</span><b>'+money(r.total)+'</b></div>';
+  $('#tTot').innerHTML=t;
+  $('#chargeBtn').textContent='Charge '+money(r.total);
+  $('#chargeBtn').disabled=!S.lines.length;
+  var n=S.lines.reduce(function(s,l){return s+l.qty;},0);
+  $('#mobOrderTxt').textContent=n?('View order · '+n+' item'+(n>1?'s':'')+' · '+money(r.total)):'No items yet — tap to view order';
+  updateTap();
+}
+function updateTap(){$('#tapNow').textContent=S.taps;}
+function updateCounts(){
+  $('#qrCnt').textContent=S.qr.length;$('#qrCnt').classList.toggle('zero',!S.qr.length);
+  $('#heldCnt').textContent=S.held.length;$('#heldCnt').classList.toggle('zero',!S.held.length);
+}
+function updateNet(){
+  var b=$('#netBtn');b.classList.toggle('off',S.offline);
+  b.innerHTML=ic(S.offline?'wifioff':'wifi',15)+'<span>'+(S.offline?'Offline · '+S.queued+' queued':'Online')+'</span>';
+}
+function setMode(mode){
+  if(S.mode===mode){return;}
+  S.mode=mode;S.cat='All';S.lines=[];S.disc=null;S.taps=0;S.start=null;S.nq=1;
+  $$('#modeSeg button').forEach(function(b){b.classList.toggle('on',b.dataset.mode===mode);});
+  renderTools();renderGrid();renderTicket();
+}
+function newSale(){S.lines=[];S.disc=null;S.cust=null;S.taps=0;S.start=null;S.awaitNew=false;renderTicket();$('#ticket').classList.remove('open');}
+
+/* ----- Modifiers ----- */
+var MOD=null;
+function openMods(it){
+  MOD={it:it,sel:{Size:'Regular',Milk:'Whole',Sugar:'100%'},add:[]};
+  renderMods();
+}
+function modExtra(){var e=0;MODS.forEach(function(g){g.o.forEach(function(o){if(g.multi?MOD.add.indexOf(o[0])>-1:MOD.sel[g.g]===o[0]){e+=o[1];}});});return e;}
+function modLabel(){var p=[];if(MOD.sel.Size!=='Regular'){p.push(MOD.sel.Size);}if(MOD.sel.Milk==='Oat'){p.push('Oat milk');}if(MOD.sel.Milk==='None'){p.push('No milk');}if(MOD.sel.Sugar!=='100%'){p.push(MOD.sel.Sugar+' sugar');}return p.concat(MOD.add).join(' · ');}
+function renderMods(){
+  var b=MODS.map(function(g){
+    return '<div class="og"><h4>'+g.g+(g.multi?' (optional)':'')+'</h4><div class="opts">'+g.o.map(function(o){var on=g.multi?MOD.add.indexOf(o[0])>-1:MOD.sel[g.g]===o[0];return '<button class="opt'+(on?' on':'')+'" data-mg="'+g.g+'" data-mo="'+o[0]+'">'+o[0]+(o[1]?'<small>+'+o[1]+'</small>':'')+'</button>';}).join('')+'</div></div>';
+  }).join('');
+  openModal({title:MOD.it.n,body:b,foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-act="madd">'+ic('plus',16)+'Add to order · '+money(MOD.it.p+modExtra())+'</button>'});
+}
+
+/* ----- Senior / PWD ----- */
+var SC=null;
+function openSC(){SC={diners:1,elig:1,id:'SC-0000-0001'};renderSC();}
+function renderSC(){
+  var idv=$('#scId')?$('#scId').value:SC.id;SC.id=idv;
+  var b='<div class="field"><label>Diners sharing this bill</label><div class="chips">'+[1,2,3,4,5,6].map(function(n){return '<button class="chip'+(SC.diners===n?' on':'')+'" data-scd="'+n+'">'+n+'</button>';}).join('')+'</div></div>';
+  b+='<div class="field"><label>Senior citizen / PWD diners</label><div class="chips">'+Array.apply(null,{length:SC.diners}).map(function(_,i){var n=i+1;return '<button class="chip'+(SC.elig===n?' on':'')+'" data-sce="'+n+'">'+n+'</button>';}).join('')+'</div></div>';
+  b+='<div class="field"><label>ID number</label><input class="input mono" id="scId" value="'+SC.id+'"></div>';
+  b+='<div class="note">'+ic('info',18)+'<span>The 20% discount and VAT exemption are pro-rated by eligible diners and printed on the sales invoice automatically.</span></div>';
+  openModal({title:'Senior Citizen / PWD discount',body:b,foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-act="scapply">Apply discount</button>'});
+}
+
+/* ----- Members ----- */
+function openMember(){
+  var b='<div class="field"><input class="input" id="memQ" placeholder="Search name or mobile number"></div><div id="memList">'+memRows('')+'</div>';
+  openModal({title:'Attach loyalty member',body:b,foot:'<button class="btn btn-s" data-toast="New member registered: Member I · 20 welcome points" data-close="1">'+ic('userplus',16)+'New member</button>'});
+}
+function memRows(q){
+  q=q.toLowerCase();
+  var list=MEMBERS.map(function(m,i){return [m,i];}).filter(function(x){return !q||x[0].n.toLowerCase().indexOf(q)>-1||x[0].ph.replace(/ /g,'').indexOf(q.replace(/ /g,''))>-1;});
+  if(!list.length){return '<p class="muted" style="padding:10px 0">No members match.</p>';}
+  return list.map(function(x){var m=x[0];return '<div class="list-i"><span class="avatar">'+initials(m.n)+'</span><div class="grow"><b>'+m.n+'</b><small>'+m.ph+' · '+m.tier+' · '+m.pts+' pts</small></div><button class="btn btn-s" data-mem="'+x[1]+'">Attach</button></div>';}).join('');
+}
+
+/* ----- Payment ----- */
+var PAY=null;
+function openPay(){
+  if(!S.lines.length){toast('Add items before charging','warn');return;}
+  var r=calc(S.lines,S.disc);PAY={m:'cash',t:0,paid:false,due:Math.round(r.total*100)/100};
+  var b='<div class="due"><small>Amount due</small><b>'+money(PAY.due)+'</b></div><div class="paytabs">'+[['cash','Cash','cash'],['qr','QR Ph','qr'],['card','Card','card']].map(function(p){return '<button class="paytab'+(p[0]==='cash'?' on':'')+'" data-pm="'+p[0]+'">'+ic(p[2],22)+p[1]+'</button>';}).join('')+'</div><div id="payArea"></div>';
+  openModal({title:'Payment',body:b,foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-a" id="payDone" data-act="paydone" disabled>'+ic('check',16)+'Complete sale</button>'});
+  renderPay();
+}
+function renderPay(){
+  clearTimeout(payTimer);PAY.paid=false;
+  $$('.paytab').forEach(function(b){b.classList.toggle('on',b.dataset.pm===PAY.m);});
+  var a=$('#payArea'),d=PAY.due;
+  if(PAY.m==='cash'){
+    var q=[d,Math.ceil(d/50)*50,Math.ceil(d/100)*100,500,1000,2000].filter(function(v,i,arr){return v>=d&&arr.indexOf(v)===i;}).slice(0,4);
+    PAY.t=d;
+    a.innerHTML='<div class="quick">'+q.map(function(v,i){return '<button data-pq="'+v+'">'+(i===0?'Exact':money0(v))+'</button>';}).join('')+'</div><div class="field"><label>Cash received</label><input class="input mono" id="payIn" type="number" min="0" step="0.01" value="'+d.toFixed(2)+'"></div><div class="change" id="chg"></div>';
+    updChange();
+  }else if(PAY.m==='qr'){
+    a.innerHTML='<div class="qrbox">'+qrSvg()+'<div class="status" id="pst"><span class="spin"></span>Waiting for customer to scan...</div><small class="muted">Dynamic QR Ph code · exact amount '+money(d)+'</small></div>';
+    $('#payDone').disabled=true;
+    payTimer=setTimeout(function(){PAY.paid=true;var s=$('#pst');if(s){s.className='status ok';s.innerHTML=ic('checkc',18)+'Payment received · Ref 0000 4412';}var p=$('#payDone');if(p){p.disabled=false;}},1900);
+  }else{
+    a.innerHTML='<div class="cardbox"><div class="term">'+ic('card',44)+'</div><div class="status" id="pst"><span class="spin"></span>Tap, insert or swipe on the card terminal...</div></div>';
+    $('#payDone').disabled=true;
+    payTimer=setTimeout(function(){PAY.paid=true;var s=$('#pst');if(s){s.className='status ok';s.innerHTML=ic('checkc',18)+'Approved · Auth code 000123';}var p=$('#payDone');if(p){p.disabled=false;}},1600);
+  }
+}
+function updChange(){
+  var c=$('#chg');if(!c){return;}var diff=PAY.t-PAY.due;
+  c.classList.toggle('short',diff<0);
+  c.innerHTML=diff<0?'<span>Still due</span><b>'+money(-diff)+'</b>':'<span>Change</span><b>'+money(diff)+'</b>';
+  $('#payDone').disabled=diff<0;
+}
+function qrSvg(){
+  var n=25,cells='',seed=7;
+  function rnd(){seed=(seed*9301+49297)%233280;return seed/233280;}
+  function finder(x,y){return '<rect x="'+x+'" y="'+y+'" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1"/><rect x="'+(x+2)+'" y="'+(y+2)+'" width="3" height="3" fill="currentColor"/>';}
+  for(var y=0;y<n;y++){for(var x=0;x<n;x++){var inF=(x<8&&y<8)||(x>16&&y<8)||(x<8&&y>16);if(!inF&&rnd()>0.52){cells+='<rect x="'+x+'" y="'+y+'" width="1" height="1"/>';}}}
+  return '<svg class="qr" viewBox="-0.5 -0.5 26 26" fill="currentColor" aria-label="QR Ph payment code">'+finder(0.5,0.5)+finder(17.5,0.5)+finder(0.5,17.5)+cells+'</svg>';
+}
+function methodLabel(m){return {cash:'Cash',qr:'QR Ph',card:'Card'}[m];}
+function completeSale(){
+  var r=calc(S.lines,S.disc),secs=S.start?Math.max(1,Math.round((Date.now()-S.start)/1000)):1;
+  var sale={no:pad(S.inv),time:clock(),date:today(),lines:S.lines.map(function(l){return {n:l.n,mods:l.mods,qty:l.qty,price:l.price};}),r:r,disc:S.disc,method:PAY.m,tendered:PAY.m==='cash'?PAY.t:r.total,change:PAY.m==='cash'?PAY.t-r.total:0,otype:S.mode==='cafe'?S.otype:'Retail',table:(S.mode==='cafe'&&S.otype==='Dine-in')?S.table:'',cust:S.cust,taps:S.taps,secs:secs,offline:S.offline};
+  S.inv++;
+  SHIFT.gross+=r.gross;SHIFT.vatable+=r.vatable;SHIFT.vat+=r.vat;SHIFT.exempt+=r.exempt;SHIFT.tx++;SHIFT[PAY.m]+=r.total;
+  if(S.disc&&S.disc.type==='sc'){SHIFT.sc+=r.discount;}if(S.disc&&S.disc.type==='promo'){SHIFT.promo+=r.discount;}
+  if(S.cust){S.cust.pts+=Math.floor(r.total/100);}
+  if(S.offline){S.queued++;updateNet();}
+  ADMIN_SALES.unshift({no:sale.no,time:sale.time,branch:'Branch 1',cashier:'Cashier 1',type:sale.otype,pay:methodLabel(PAY.m),status:'Completed',items:sale.lines.map(function(l){return [l.n+(l.mods?' ('+l.mods+')':''),l.qty,l.price];}),total:r.total});
+  clearTimeout(payTimer);
+  showInvoice(sale);
+}
+function row(a,b){return '<div class="r"><span>'+a+'</span><span>'+b+'</span></div>';}
+function invoiceHtml(s){
+  var r=s.r,h='<div class="rcpt"><div class="c"><div class="h">CAFÉ A</div>Operated by Company A<br>123 Sample Street, Brgy. Sample<br>Sample City, Philippines<br>VAT REG TIN 000-000-000-00000<br>MIN 000000000000000001 · SN SAMPLE-T01</div><hr><div class="c h">SALES INVOICE</div>';
+  h+=row('Invoice No.',s.no)+row('Date',s.date+' '+s.time)+row('Cashier','Cashier 1 · T01')+row('Order',s.otype+(s.table?' · '+s.table:''))+'<hr>';
+  s.lines.forEach(function(l){h+='<div>'+l.n+'</div>'+(l.mods?'<div class="dim">&nbsp;&nbsp;'+l.mods+'</div>':'')+row('&nbsp;&nbsp;'+l.qty+' x '+money(l.price),money(l.qty*l.price));});
+  h+='<hr>'+row('Subtotal',money(r.gross));
+  if(s.disc&&s.disc.type==='sc'){h+=row('Less: VAT exemption','-'+money(r.vatRemoved))+row('Less: SC/PWD 20%','-'+money(r.discount));}
+  if(s.disc&&s.disc.type==='promo'){h+=row('Less: Promo 10%','-'+money(r.discount));}
+  h+='<div class="r big"><span>TOTAL DUE</span><span>'+money(r.total)+'</span></div>'+row(methodLabel(s.method),money(s.tendered));
+  if(s.method==='cash'){h+=row('Change',money(s.change));}
+  h+='<hr>'+row('VATable Sales',money(r.vatable))+row('VAT Amount (12%)',money(r.vat))+row('VAT-Exempt Sales',money(r.exempt))+row('Zero-Rated Sales',money(0))+'<hr>';
+  if(s.disc&&s.disc.type==='sc'){h+='<div>SC/PWD ID No.: '+s.disc.id+'</div><div>Name: ______________________</div><div>Signature: _________________</div><hr>';}
+  h+='<div>Customer: ___________________</div><div>Address: ____________________</div><div>TIN: ________________________</div>';
+  if(s.cust){h+='<div>Member: '+s.cust.n+' · +'+Math.floor(r.total/100)+' pts</div>';}
+  h+='<hr><div class="c dim">POS Provider: Sample POS Provider<br>Accreditation No. 0000000000000000000<br>PTU No. FP000000000000000001<br>Thank you, come again!</div></div>';
+  return h;
+}
+function showInvoice(s){
+  S.awaitNew=true;
+  var stat='<div class="sale-stat">'+ic('zap',18)+'<span>Completed in <b>'+s.taps+' taps</b> · <b>'+s.secs+'s</b>'+(s.offline?' · saved offline, syncs later':'')+'</span></div>';
+  openModal({title:'Sale complete',cls:'receipt',body:stat+invoiceHtml(s),foot:'<button class="btn btn-s" data-toast="Invoice sent to receipt printer">'+ic('printer',16)+'Print</button><button class="btn btn-s" data-toast="E-receipt sent by SMS">'+ic('send',16)+'SMS</button><button class="btn btn-p" data-act="newsale">'+ic('plus',16)+'New sale</button>'});
+}
+
+/* ----- Held & QR orders ----- */
+function holdOrder(){
+  if(!S.lines.length){toast('Add items before holding an order','warn');return;}
+  var r=calc(S.lines,S.disc);
+  S.held.push({label:'Order #'+pad(S.inv),lines:S.lines,disc:S.disc,cust:S.cust,otype:S.otype,table:S.table,mode:S.mode,at:clock(),total:r.total});
+  S.inv++;newSale();updateCounts();toast('Order held — resume it anytime from Held');
+}
+function openHeld(){
+  var b=S.held.length?S.held.map(function(h,i){var n=h.lines.reduce(function(s,l){return s+l.qty;},0);return '<div class="list-i"><span class="oa-ic tint-2">'+ic('pause',16)+'</span><div class="grow"><b>'+h.label+'</b><small>'+h.at+' · '+n+' item'+(n>1?'s':'')+' · '+(h.mode==='cafe'?h.otype+(h.otype==='Dine-in'?' · '+h.table:''):'Retail')+'</small></div><b class="num">'+money(h.total)+'</b><button class="btn btn-s" data-h="'+i+'">Resume</button></div>';}).join(''):'<p class="muted">No held orders. Use Hold to park an order while the customer decides.</p>';
+  openModal({title:'Held orders',body:b});
+}
+function openQr(){
+  var b=S.qr.length?S.qr.map(function(o,i){var n=o.lines.reduce(function(s,l){return s+l.qty;},0),t=calc(o.lines,null).total;return '<div class="list-i"><span class="oa-ic tint-1">'+ic('qr',16)+'</span><div class="grow"><b>'+o.no+' · '+o.table+'</b><small>'+o.at+' · '+o.name+' · '+n+' item'+(n>1?'s':'')+' · '+o.pay+'</small><small>'+o.lines.map(function(l){return l.qty+'x '+l.n;}).join(', ')+'</small></div><b class="num">'+money(t)+'</b><button class="btn btn-p" data-qr="'+i+'">Load</button></div>';}).join(''):'<p class="muted">No new QR orders. Orders placed from table QR codes appear here instantly.</p>';
+  openModal({title:'QR orders from tables',body:b,cls:'wide'});
+}
+
+/* ----- Shift & readings ----- */
+function openShift(){
+  var net=SHIFT.vatable+SHIFT.vat+SHIFT.exempt-SHIFT.sc;
+  var b='<dl class="dl"><dt>Cashier</dt><dd>Cashier 1</dd><dt>Terminal</dt><dd>T01 · Branch 1</dd><dt>Shift opened</dt><dd>7:00 AM</dd><dt>Opening cash fund</dt><dd class="num">'+money(2000)+'</dd><dt>Net sales this shift</dt><dd class="num">'+money(net)+'</dd><dt>Transactions</dt><dd class="num">'+SHIFT.tx+'</dd><dt>Cash</dt><dd class="num">'+money(SHIFT.cash)+'</dd><dt>QR Ph</dt><dd class="num">'+money(SHIFT.qr)+'</dd><dt>Card</dt><dd class="num">'+money(SHIFT.card)+'</dd></dl>';
+  openModal({title:'Shift · Cashier 1',body:b,foot:'<button class="btn btn-s" data-toast="Cash drop of ₱1,000.00 recorded">'+ic('cash',16)+'Cash drop</button><button class="btn btn-s" data-act="xread">'+ic('file',16)+'X-Reading</button><button class="btn btn-p" data-act="zread">'+ic('receipt',16)+'End of day · Z-Reading</button>'});
+}
+function readingHtml(type){
+  var net=SHIFT.vatable+SHIFT.vat+SHIFT.exempt-SHIFT.sc-0,vex=SHIFT.gross-SHIFT.promo-SHIFT.sc-net;
+  var h='<div class="rcpt"><div class="c"><div class="h">CAFÉ A · '+(type==='Z'?'Z-READING':'X-READING')+'</div>Company A · VAT REG TIN 000-000-000-00000<br>MIN 000000000000000001 · Terminal T01<br>'+today()+' · '+clock()+'</div><hr>';
+  h+=row('Beginning Invoice No.',pad(SHIFT.beg))+row('Ending Invoice No.',pad(S.inv-1))+'<hr>';
+  h+=row('Gross Sales',money(SHIFT.gross))+row('Less: SC/PWD Discount','-'+money(SHIFT.sc))+row('Less: Promo Discount','-'+money(SHIFT.promo))+row('Less: VAT Exemption','-'+money(vex))+'<div class="r big"><span>NET SALES</span><span>'+money(net)+'</span></div><hr>';
+  h+=row('VATable Sales',money(SHIFT.vatable))+row('VAT Amount (12%)',money(SHIFT.vat))+row('VAT-Exempt Sales',money(SHIFT.exempt))+row('Zero-Rated Sales',money(0))+'<hr>';
+  h+=row('Cash',money(SHIFT.cash))+row('QR Ph',money(SHIFT.qr))+row('Card',money(SHIFT.card))+row('Transactions',SHIFT.tx)+row('Voids',SHIFT.voids)+'<hr>';
+  if(type==='Z'){h+=row('Z Counter','0218')+row('Reset Counter','0')+row('Beginning Grand Total',money(4812340))+row('Ending Grand Total',money(4812340+net))+'<hr>';}
+  h+='<div class="c dim">'+(type==='Z'?'End-of-day reading · counters reset':'Mid-shift reading · does not reset counters')+'</div></div>';
+  return h;
+}
+
+/* ============================================================
+   Back-office data & pages
+   ============================================================ */
+var ADMIN_SALES=[
+{no:'00000141',time:'10:58 AM',branch:'Branch 1',cashier:'Cashier 1',type:'Takeout',pay:'Cash',status:'Completed',items:[['Café Latte',1,150],['Butter Croissant',1,110]]},
+{no:'00000140',time:'10:51 AM',branch:'Branch 2',cashier:'Cashier 3',type:'Dine-in',pay:'QR Ph',status:'Completed',items:[['Tapa Silog',2,240],['Iced Tea',2,85]]},
+{no:'00000139',time:'10:47 AM',branch:'Branch 1',cashier:'Cashier 2',type:'Dine-in',pay:'Card',status:'Completed',items:[['Spanish Latte',2,165],['Ensaymada',1,75]]},
+{no:'00000138',time:'10:39 AM',branch:'Branch 3',cashier:'Cashier 4',type:'Retail',pay:'Cash',status:'Completed',items:[['Rice 1kg',2,58],['Canned Tuna 155g',3,38],['Fresh Eggs (12)',1,110]]},
+{no:'00000137',time:'10:33 AM',branch:'Branch 1',cashier:'Cashier 1',type:'Takeout',pay:'QR Ph',status:'Voided',items:[['Cold Brew',1,160]]},
+{no:'00000136',time:'10:28 AM',branch:'Branch 2',cashier:'Cashier 3',type:'Dine-in',pay:'Cash',status:'Completed',items:[['Creamy Carbonara',1,210],['Calamansi Juice',1,95]]},
+{no:'00000135',time:'10:21 AM',branch:'Branch 3',cashier:'Cashier 4',type:'Retail',pay:'QR Ph',status:'Completed',items:[['Soft Drink 1.5L',2,75],['Instant Noodles 70g',6,16]]},
+{no:'00000134',time:'10:15 AM',branch:'Branch 1',cashier:'Cashier 2',type:'Dine-in',pay:'Card',status:'Completed',items:[['Chicken Adobo Bowl',2,220],['Matcha Latte',2,170]]},
+{no:'00000133',time:'10:09 AM',branch:'Branch 2',cashier:'Cashier 3',type:'Takeout',pay:'Cash',status:'Refunded',items:[['Banana Bread',2,90],['Americano',2,120]]},
+{no:'00000132',time:'10:02 AM',branch:'Branch 1',cashier:'Cashier 1',type:'Dine-in',pay:'QR Ph',status:'Completed',items:[['Caramel Macchiato',1,175],['Cheese Pandesal',1,120]]},
+{no:'00000131',time:'9:55 AM',branch:'Branch 3',cashier:'Cashier 4',type:'Retail',pay:'Cash',status:'Completed',items:[['Cooking Oil 1L',1,125],['Laundry Powder 1kg',1,89],['Bar Soap 135g',2,42]]},
+{no:'00000130',time:'9:48 AM',branch:'Branch 2',cashier:'Cashier 3',type:'Dine-in',pay:'Card',status:'Completed',items:[['Ham & Cheese Panini',2,195],['Mocha',2,170]]}];
+function saleTotal(s){return s.total!=null?s.total:s.items.reduce(function(a,i){return a+i[1]*i[2];},0);}
+var INV=[
+{item:'Espresso beans',branch:'Branch 1',on:4.5,unit:'kg',re:3},
+{item:'Oat milk',branch:'Branch 1',on:3,unit:'L',re:6},
+{item:'Fresh milk',branch:'Branch 2',on:18,unit:'L',re:10},
+{item:'Croissant dough',branch:'Branch 2',on:1,unit:'tray',re:2},
+{item:'Matcha powder',branch:'Branch 1',on:0.8,unit:'kg',re:0.5},
+{item:'Canned Tuna 155g',branch:'Branch 3',on:6,unit:'pcs',re:12},
+{item:'Bottled Water 500ml',branch:'Branch 3',on:96,unit:'pcs',re:48},
+{item:'Rice 1kg',branch:'Branch 3',on:0,unit:'pcs',re:10},
+{item:'Paper cups 12oz',branch:'Branch 1',on:340,unit:'pcs',re:200},
+{item:'Ensaymada',branch:'Branch 2',on:14,unit:'pcs',re:10}];
+function invStatus(r){return r.on<=0?'Out':(r.on<=r.re?'Low':'In stock');}
+var STAFF=[
+{n:'Manager A',role:'Manager',branch:'Branch 1',sched:'7:00 AM – 4:00 PM',inT:'6:48 AM',tx:'—',st:'On shift'},
+{n:'Cashier 1',role:'Cashier',branch:'Branch 1',sched:'7:00 AM – 3:00 PM',inT:'6:52 AM',tx:'41',st:'On shift'},
+{n:'Cashier 2',role:'Cashier',branch:'Branch 1',sched:'10:00 AM – 7:00 PM',inT:'9:57 AM',tx:'18',st:'On shift'},
+{n:'Barista A',role:'Barista',branch:'Branch 1',sched:'2:00 PM – 10:00 PM',inT:'—',tx:'—',st:'Off shift'},
+{n:'Manager B',role:'Manager',branch:'Branch 2',sched:'7:00 AM – 4:00 PM',inT:'6:55 AM',tx:'—',st:'On shift'},
+{n:'Cashier 3',role:'Cashier',branch:'Branch 2',sched:'7:00 AM – 3:00 PM',inT:'6:58 AM',tx:'37',st:'On shift'},
+{n:'Cashier 4',role:'Cashier',branch:'Branch 3',sched:'7:00 AM – 3:00 PM',inT:'7:01 AM',tx:'29',st:'On shift'},
+{n:'Cashier 5',role:'Cashier',branch:'Branch 3',sched:'3:00 PM – 10:00 PM',inT:'—',tx:'—',st:'Off shift'}];
+var ZG=[[19920,14380,9880],[23410,17020,12100],[24870,18310,12990],[21130,15670,10420]],ZD=['Oct 19','Oct 18','Oct 17','Oct 16'],ZROWS=[],zno=217,binv=[3120,2240,1650];
+ZD.forEach(function(d,di){[0,1,2].forEach(function(b){var g=ZG[di][b],disc=Math.round(g*0.012),net=g-disc,cnt=Math.round(g/225);ZROWS.push({z:pad(zno--,4),date:d,branch:'Branch '+(b+1),term:'T0'+(b+1),beg:pad(binv[b]-cnt*(di+1)+1),end:pad(binv[b]-cnt*di),gross:g,disc:disc,net:net,vat:Math.round(net/1.12*0.12*0.97),st:'Generated'});});});
+var SETUP=[
+{t:'Business details',d:'Registered name, TIN and address printed on every invoice',done:true},
+{t:'Menu & products',d:'Import items from a spreadsheet or add them one by one',done:true},
+{t:'Staff & PINs',d:'Each cashier signs in with their own 4-digit PIN',done:true},
+{t:'Payments',d:'Turn on QR Ph and card acceptance',done:false},
+{t:'Receipt printer',d:'Pair a thermal printer over Bluetooth or USB',done:false},
+{t:'BIR terminal registration',d:'Generate the Permit to Use application for each terminal',done:false}];
+var USERS=[
+{n:'Sample User',e:'owner@companya.example',role:'Owner',access:'All branches',last:'Just now',st:'Active'},
+{n:'Manager A',e:'manager.a@companya.example',role:'Manager',access:'Branch 1',last:'10:41 AM',st:'Active'},
+{n:'Manager B',e:'manager.b@companya.example',role:'Manager',access:'Branch 2',last:'9:12 AM',st:'Active'},
+{n:'Accountant A',e:'accounts@companya.example',role:'Accountant',access:'Reports only',last:'Yesterday',st:'Active'},
+{n:'Supervisor A',e:'supervisor.a@companya.example',role:'Supervisor',access:'Branch 3',last:'—',st:'Invited'}];
+var F={sales:'All',products:'All',inventory:'All',staff:'All',customers:'All',bir:'All'};
+var BO='dashboard';
+var TITLES={dashboard:'Dashboard',sales:'Sales',products:'Products',inventory:'Inventory',staff:'Staff & Shifts',customers:'Customers & Loyalty',bir:'BIR Readings',branches:'Branches',setup:'Get Started',settings:'Settings',users:'Users & Roles'};
+
+function fbar(g,opts){return '<div class="filters">'+opts.map(function(o){return '<button class="chip'+(F[g]===o?' on':'')+'" data-fg="'+g+'" data-fv="'+o+'">'+o+'</button>';}).join('')+'</div>';}
+function tbl(cols,rows){return '<div class="tbl-wrap"><table class="tbl"><thead><tr>'+cols.map(function(c){return '<th'+(c[2]?' class="r"':'')+'>'+c[0]+'</th>';}).join('')+'</tr></thead><tbody>'+(rows.length?rows.map(function(r){return '<tr>'+cols.map(function(c){return '<td'+(c[2]?' class="r"':'')+'>'+c[1](r)+'</td>';}).join('')+'</tr>';}).join(''):'<tr><td colspan="'+cols.length+'" class="empty">No records match this filter.</td></tr>')+'</tbody></table></div>';}
+function viewBtn(k,i,label){return '<button class="lnk" data-view="'+k+':'+i+'">'+ic(label==='Edit'||label==='Adjust'?'edit':'eye',14)+(label||'View')+'</button>';}
+function kpi(label,val,delta,icon,dir){return '<div class="kpi"><div class="kh">'+label+ic(icon,17)+'</div><div class="kv">'+val+'</div><div class="kd '+(dir||'up2')+'">'+delta+'</div></div>';}
+
+var PAGES={
+dashboard:function(){
+  var DAYS=[['Wed',[17.2,12.8,9.1]],['Thu',[18.4,13.1,9.6]],['Fri',[22.6,16.9,11.8]],['Sat',[26.1,19.4,13.2]],['Sun',[24.3,18.2,12.4]],['Mon',[19.9,14.4,9.9]],['Tue',[21.4,15.9,11.0]]];
+  var max=60,bars=DAYS.map(function(d){var t=d[1][0]+d[1][1]+d[1][2];return '<div class="bar"><span class="bt">'+t.toFixed(1)+'k</span><div class="stack" style="height:'+(t/max*100)+'%">'+d[1].map(function(v,i){return '<div class="s'+(i+1)+'" style="height:'+(v/t*100)+'%"></div>';}).join('')+'</div><small>'+d[0]+'</small></div>';}).join('');
+  var done=SETUP.filter(function(s){return s.done;}).length,pct=Math.round(done/SETUP.length*100);
+  var feed=ADMIN_SALES.slice(0,6).map(function(s){return '<div class="feed-i"><span class="fi '+(s.status==='Completed'?'tint-3':'tint-1')+'">'+ic(s.type==='Retail'?'scan':'receipt',16)+'</span><div class="grow"><b>Invoice '+s.no+' · '+s.type+'</b><small>'+s.branch+' · '+s.cashier+' · '+s.pay+' · '+s.time+'</small></div><span class="num">'+money(saleTotal(s))+'</span></div>';}).join('');
+  return '<div class="page-h"><p>Live overview across all branches. Figures update as every register syncs.</p><div class="acts"><button class="btn btn-s" data-toast="Daily summary sent to the owner app">'+ic('send',16)+'Send summary</button><button class="btn btn-p" data-page="sales">'+ic('receipt',16)+'View sales</button></div></div>'+
+  '<div class="kpis">'+kpi('Gross sales today','₱48,320','+12% vs last Tuesday','chart')+kpi('Transactions','214','+8% vs last Tuesday','receipt')+kpi('Average ticket','₱226','+4% vs last Tuesday','tag')+kpi('Low / out of stock','4 items','Needs attention','package','down')+'</div>'+
+  '<div class="grid2"><div class="panel"><div class="panel-h"><div><h3>Sales by branch · last 7 days</h3><p>In thousands of pesos</p></div><div class="legend"><span><i style="background:var(--primary)"></i>Branch 1</span><span><i style="background:var(--sun)"></i>Branch 2</span><span><i style="background:var(--accent)"></i>Branch 3</span></div></div><div class="bars">'+bars+'</div></div>'+
+  '<div class="panel"><div class="panel-h"><h3>Recent transactions</h3><button class="lnk" data-page="sales">See all</button></div>'+feed+'</div></div>'+
+  '<div class="grid2"><div class="panel"><div class="panel-h"><h3>Top sellers today</h3></div>'+tbl([['Item',function(r){return '<div class="cell-i"><span class="ti tint-'+r[3]+'">'+initials(r[0])+'</span><b>'+r[0]+'</b></div>';}],['Sold',function(r){return '<span class="num">'+r[1]+'</span>';},1],['Revenue',function(r){return '<span class="num">'+money(r[2])+'</span>';},1]],[['Spanish Latte',64,10560,1],['Tapa Silog',22,5280,4],['Ensaymada',48,3600,2],['Matcha Latte',19,3230,3],['Bottled Water 500ml',71,1420,3]])+'</div>'+
+  '<div class="panel"><div class="panel-h"><h3>Setup progress</h3><span class="badge b-info">'+pct+'%</span></div><div class="progress"><div style="width:'+pct+'%"></div></div><p class="muted" style="margin:12px 0">'+done+' of '+SETUP.length+' steps done. Most stores finish setup in under an hour.</p><button class="btn btn-s" data-page="setup">'+ic('checkc',16)+'Continue setup</button></div></div>';
+},
+sales:function(){
+  var rows=ADMIN_SALES.map(function(s,i){return [s,i];}).filter(function(x){return F.sales==='All'||x[0].status===F.sales;});
+  return '<div class="page-h"><p>Every invoice from every register, synced in real time. Voids and refunds require owner or manager approval.</p><div class="acts"><button class="btn btn-s" data-toast="Sales report exported (CSV)">'+ic('download',16)+'Export</button></div></div>'+
+  '<div class="panel">'+fbar('sales',['All','Completed','Voided','Refunded'])+tbl([
+    ['Invoice No.',function(x){return '<span class="num">'+x[0].no+'</span>';}],['Time',function(x){return x[0].time;}],['Branch',function(x){return x[0].branch;}],['Cashier',function(x){return x[0].cashier;}],['Type',function(x){return x[0].type;}],['Payment',function(x){return x[0].pay;}],['Total',function(x){return '<b class="num">'+money(saleTotal(x[0]))+'</b>';},1],['Status',function(x){return badge(x[0].status);}],['',function(x){return viewBtn('sale',x[1]);}]],rows)+'</div>';
+},
+products:function(){
+  var rows=PRODUCTS.map(function(p,i){return [p,i];}).filter(function(x){var p=x[0];return F.products==='All'||(F.products==='Hidden'?p.status==='Hidden':p.type===F.products);});
+  return '<div class="page-h"><p>One catalog for every branch. Price changes reach all registers and the QR menu instantly.</p><div class="acts"><button class="btn btn-s" data-toast="Import template downloaded (CSV)">'+ic('download',16)+'Import</button><button class="btn btn-p" data-act="addprod">'+ic('plus',16)+'Add product</button></div></div>'+
+  '<div class="panel">'+fbar('products',['All','Café menu','Retail','Hidden'])+tbl([
+    ['Item',function(x){return '<div class="cell-i"><span class="ti tint-'+TINT[x[0].c]+'">'+initials(x[0].n)+'</span><b>'+x[0].n+'</b></div>';}],['Category',function(x){return x[0].c;}],['Type',function(x){return x[0].type;}],['Barcode / SKU',function(x){return '<span class="num muted">'+(x[0].b||'SKU-'+x[0].id.toUpperCase())+'</span>';}],['Price',function(x){return '<b class="num">'+money(x[0].p)+'</b>';},1],['Status',function(x){return badge(x[0].status);}],['',function(x){return viewBtn('prod',x[1],'Edit');}]],rows)+'</div>';
+},
+inventory:function(){
+  var rows=INV.map(function(r,i){return [r,i];}).filter(function(x){return F.inventory==='All'||invStatus(x[0])===F.inventory;});
+  return '<div class="page-h"><p>Stock per branch, deducted automatically as items sell — including ingredients used in each drink.</p><div class="acts"><button class="btn btn-s" data-toast="Purchase order drafted for 4 low-stock items">'+ic('file',16)+'Draft PO</button><button class="btn btn-p" data-act="transfer">'+ic('transfer',16)+'Transfer stock</button></div></div>'+
+  '<div class="kpis">'+kpi('Items tracked','186','Across 3 branches','package')+kpi('Low stock','3','Below reorder point','alert','down')+kpi('Out of stock','1','Rice 1kg · Branch 3','alert','down')+kpi('Stock value','₱214,870','Updated live','chart')+'</div>'+
+  '<div class="panel">'+fbar('inventory',['All','In stock','Low','Out'])+tbl([
+    ['Item',function(x){return '<b>'+x[0].item+'</b>';}],['Branch',function(x){return x[0].branch;}],['On hand',function(x){return '<span class="num">'+x[0].on+' '+x[0].unit+'</span>';},1],['Reorder at',function(x){return '<span class="num muted">'+x[0].re+' '+x[0].unit+'</span>';},1],['Status',function(x){return badge(invStatus(x[0]));}],['',function(x){return viewBtn('inv',x[1],'Adjust');}]],rows)+'</div>';
+},
+staff:function(){
+  var rows=STAFF.map(function(s,i){return [s,i];}).filter(function(x){return F.staff==='All'||x[0].st===F.staff;});
+  return '<div class="page-h"><p>Schedules, clock-ins and per-cashier performance. Staff clock in on the register with their PIN.</p><div class="acts"><button class="btn btn-p" data-toast="Invite sent — staff sign in with their own PIN">'+ic('userplus',16)+'Add staff</button></div></div>'+
+  '<div class="panel">'+fbar('staff',['All','On shift','Off shift'])+tbl([
+    ['Staff',function(x){return '<div class="cell-i"><span class="avatar" style="width:30px;height:30px;font-size:11px">'+initials(x[0].n)+'</span><b>'+x[0].n+'</b></div>';}],['Role',function(x){return x[0].role;}],['Branch',function(x){return x[0].branch;}],['Schedule',function(x){return x[0].sched;}],['Clock-in',function(x){return '<span class="num">'+x[0].inT+'</span>';}],['Sales today',function(x){return '<span class="num">'+x[0].tx+'</span>';},1],['Status',function(x){return badge(x[0].st);}],['',function(x){return viewBtn('staff',x[1]);}]],rows)+'</div>';
+},
+customers:function(){
+  var rows=MEMBERS.map(function(m,i){return [m,i];}).filter(function(x){return F.customers==='All'||x[0].tier===F.customers;});
+  return '<div class="page-h"><p>Built-in loyalty: members earn points at the register and on QR orders, and get automatic tier upgrades.</p><div class="acts"><button class="btn btn-s" data-toast="SMS promo scheduled for 1,284 members">'+ic('send',16)+'Send promo</button></div></div>'+
+  '<div class="kpis">'+kpi('Members','1,284','+46 this month','users')+kpi('Repeat-visit rate','41%','+3 pts vs last month','trend')+kpi('Points redeemed','3,920','This month','gift')+kpi('Earn rate','1 pt / ₱100','Edit in Settings','tag')+'</div>'+
+  '<div class="panel">'+fbar('customers',['All','Gold','Silver','Bronze'])+tbl([
+    ['Member',function(x){return '<div class="cell-i"><span class="avatar" style="width:30px;height:30px;font-size:11px">'+initials(x[0].n)+'</span><b>'+x[0].n+'</b></div>';}],['Mobile',function(x){return '<span class="num">'+x[0].ph+'</span>';}],['Visits',function(x){return '<span class="num">'+x[0].visits+'</span>';},1],['Points',function(x){return '<b class="num">'+x[0].pts+'</b>';},1],['Tier',function(x){return badge(x[0].tier);}],['Last visit',function(x){return x[0].last;}],['',function(x){return viewBtn('mem',x[1]);}]],rows)+'</div>';
+},
+bir:function(){
+  var rows=ZROWS.map(function(z,i){return [z,i];}).filter(function(x){return F.bir==='All'||x[0].branch===F.bir;});
+  var terms=[['T01','Branch 1','000000000000000001','FP000000000000000001'],['T02','Branch 2','000000000000000002','FP000000000000000002'],['T03','Branch 3','000000000000000003','FP000000000000000003']];
+  return '<div class="page-h"><p>X and Z readings are generated by every register automatically — at shift close and at end of day — with no manual counting.</p><div class="acts"><button class="btn btn-s" data-toast="eSales report for October exported">'+ic('download',16)+'Export eSales</button><button class="btn btn-p" data-toast="E-journal backup downloaded">'+ic('file',16)+'Download e-journal</button></div></div>'+
+  '<div class="kpis">'+kpi('Z-readings this month','57','All branches · none missed','receipt')+kpi('Registered terminals','3 of 3','PTU on file','shield')+kpi('Last Z-reading','9:42 PM','Branch 3 · auto at closing','clock')+kpi('E-invoicing (EIS)','Ready','Structured invoice data','checkc')+'</div>'+
+  '<div class="panel"><div class="panel-h"><h3>Registered terminals</h3><span class="badge b-ok">'+ic('shield',13)+'Compliant</span></div>'+tbl([['Terminal',function(t){return '<b>'+t[0]+'</b>';}],['Branch',function(t){return t[1];}],['MIN',function(t){return '<span class="num">'+t[2]+'</span>';}],['PTU No.',function(t){return '<span class="num">'+t[3]+'</span>';}],['Status',function(){return badge('Registered');}]],terms)+'</div>'+
+  '<div class="panel"><div class="panel-h"><h3>Z-readings</h3></div>'+fbar('bir',['All','Branch 1','Branch 2','Branch 3'])+tbl([
+    ['Z No.',function(x){return '<span class="num">'+x[0].z+'</span>';}],['Date',function(x){return x[0].date;}],['Branch · Terminal',function(x){return x[0].branch+' · '+x[0].term;}],['Invoice range',function(x){return '<span class="num muted">'+x[0].beg+' – '+x[0].end+'</span>';}],['Gross',function(x){return '<span class="num">'+money(x[0].gross)+'</span>';},1],['Net',function(x){return '<b class="num">'+money(x[0].net)+'</b>';},1],['VAT',function(x){return '<span class="num">'+money(x[0].vat)+'</span>';},1],['Status',function(x){return badge(x[0].st);}],['',function(x){return viewBtn('z',x[1]);}]],rows)+'</div>';
+},
+branches:function(){
+  var B=[['Branch 1','123 Sample Street, Sample City','Manager A',2,21450,96],['Branch 2','456 Sample Avenue, Sample City','Manager B',1,15870,71],['Branch 3 · Grab & Go','789 Sample Road, Sample City','Supervisor A',1,11000,47]];
+  return '<div class="page-h"><p>Run every branch from one account — shared catalog, per-branch pricing and stock, one consolidated report.</p><div class="acts"><button class="btn btn-p" data-toast="New branch created — add its terminal to start selling">'+ic('plus',16)+'Add branch</button></div></div>'+
+  '<div class="cards3">'+B.map(function(b,i){return '<div class="bcard"><div class="bh"><div><h4>'+b[0]+'</h4><small class="muted">'+b[1]+'</small></div>'+badge('Open')+'</div><div><small class="muted">Sales today</small><div class="big">'+money0(b[4])+'</div></div><dl class="dl"><dt>Manager</dt><dd>'+b[2]+'</dd><dt>Terminals</dt><dd>'+b[3]+'</dd><dt>Transactions</dt><dd class="num">'+b[5]+'</dd></dl><button class="btn btn-s" data-view="branch:'+i+'">'+ic('eye',16)+'View branch</button></div>';}).join('')+'</div>';
+},
+setup:function(){
+  var done=SETUP.filter(function(s){return s.done;}).length,pct=Math.round(done/SETUP.length*100);
+  return '<div class="page-h"><p>Go from sign-up to your first sale without waiting for a training session.</p></div>'+
+  '<div class="grid2"><div class="panel"><div class="panel-h"><h3>Setup checklist</h3><span class="badge '+(pct===100?'b-ok':'b-info')+'">'+done+' of '+SETUP.length+' done</span></div><div class="progress" style="margin-bottom:16px"><div style="width:'+pct+'%"></div></div>'+
+  SETUP.map(function(s,i){return '<div class="setup-i'+(s.done?' done':'')+'"><span class="si">'+(s.done?ic('check',16):(i+1))+'</span><div class="grow"><b>'+s.t+'</b><small>'+s.d+'</small></div>'+(s.done?'<span class="badge b-ok">Done</span>':'<button class="btn btn-p" data-setup="'+i+'">Set up</button>')+'</div>';}).join('')+'</div>'+
+  '<div class="panel"><div class="panel-h"><h3>'+(pct===100?'You are ready to sell':'Almost there')+'</h3></div><p class="muted" style="line-height:1.6;margin-bottom:14px">'+(pct===100?'Every step is complete. Open the register and ring up your first sale.':'Most stores finish setup in under an hour. Each step takes just a few minutes, and you can start selling before everything is done.')+'</p><div class="note" style="margin-bottom:14px">'+ic('info',18)+'<span>Help is one tap away — chat with support from any screen, every day of the week.</span></div><button class="btn btn-s" data-toast="Support chat opened">'+ic('send',16)+'Chat with support</button></div></div>';
+},
+settings:function(){
+  var tg=[['VAT-registered business','Show VATable, VAT-exempt and zero-rated sales on invoices',true],['Auto Z-reading at closing','Generate the end-of-day reading when the last shift closes',true],['Daily summary to owner app','Send sales, voids and stock alerts every night',true],['Offline selling','Keep ringing up sales without internet; sync later',true],['Require approval for voids','Manager or owner must approve before a sale is voided',true]];
+  return '<div class="page-h"><p>Business details printed on invoices, and how the registers behave.</p></div>'+
+  '<div class="grid2"><div class="panel"><div class="panel-h"><h3>Business details</h3></div><div class="form-grid">'+
+  '<div class="field"><label>Store name</label><input class="input" value="Café A"></div><div class="field"><label>Registered business name</label><input class="input" value="Company A"></div>'+
+  '<div class="field"><label>VAT REG TIN</label><input class="input mono" value="000-000-000-00000"></div><div class="field"><label>Business email</label><input class="input" value="hello@companya.example"></div>'+
+  '<div class="field" style="grid-column:1/-1"><label>Registered address</label><input class="input" value="123 Sample Street, Brgy. Sample, Sample City"></div>'+
+  '<div class="field"><label>Loyalty earn rate</label><select class="sel"><option>1 point per ₱100</option><option>1 point per ₱50</option><option>1 point per ₱200</option></select></div><div class="field"><label>Invoice footer</label><input class="input" value="Thank you, come again!"></div>'+
+  '</div><button class="btn btn-p" data-toast="Settings saved — registers updated">'+ic('check',16)+'Save changes</button></div>'+
+  '<div class="panel"><div class="panel-h"><h3>Register behavior</h3></div>'+tg.map(function(t){return '<div class="trow"><div><b>'+t[0]+'</b><small>'+t[1]+'</small></div><button class="toggle'+(t[2]?' on':'')+'" data-act="toggle" aria-label="Toggle '+t[0]+'"></button></div>';}).join('')+'</div></div>';
+},
+users:function(){
+  return '<div class="page-h"><p>Give owners, managers and accountants the right access. Cashiers sign in on the register with a PIN.</p><div class="acts"><button class="btn btn-p" data-toast="Invitation sent">'+ic('userplus',16)+'Invite user</button></div></div>'+
+  '<div class="panel">'+tbl([
+    ['Name',function(u){return '<div class="cell-i"><span class="avatar" style="width:30px;height:30px;font-size:11px">'+initials(u.n)+'</span><b>'+u.n+'</b></div>';}],['Email',function(u){return u.e;}],['Role',function(u){return u.role;}],['Access',function(u){return u.access;}],['Last active',function(u){return u.last;}],['Status',function(u){return badge(u.st);}],['',function(u){return '<button class="lnk" data-toast="Permissions for '+u.n+' updated">'+ic('edit',14)+'Edit</button>';}]],USERS)+'</div>';
+}};
+
+function renderPage(p){
+  BO=p;$$('.bo-link').forEach(function(b){b.classList.toggle('on',b.dataset.page===p);});
+  $('#boTitle').textContent=TITLES[p];$('#boPage').innerHTML=PAGES[p]();$('#boPage').scrollTop=0;
+  var left=SETUP.filter(function(s){return !s.done;}).length;$('#setupPill').textContent=left?left+' left':'Done';
+  $('#boSide').classList.remove('open');$('#boBackdrop').classList.remove('open');
+}
+function openView(k,i){
+  i=+i;var b='',t='',f='';
+  if(k==='sale'){var s=ADMIN_SALES[i],tot=saleTotal(s);t='Invoice '+s.no;
+    b='<dl class="dl"><dt>Status</dt><dd>'+badge(s.status)+'</dd><dt>Time</dt><dd>'+s.time+'</dd><dt>Branch</dt><dd>'+s.branch+'</dd><dt>Cashier</dt><dd>'+s.cashier+'</dd><dt>Order type</dt><dd>'+s.type+'</dd><dt>Payment</dt><dd>'+s.pay+'</dd></dl><table class="mtbl"><thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Amount</th></tr></thead><tbody>'+s.items.map(function(it){return '<tr><td>'+it[0]+'</td><td class="r num">'+it[1]+'</td><td class="r num">'+money(it[1]*it[2])+'</td></tr>';}).join('')+'<tr><td><b>Total</b></td><td></td><td class="r"><b class="num">'+money(tot)+'</b></td></tr><tr><td class="muted">VAT included</td><td></td><td class="r num muted">'+money(tot-tot/1.12)+'</td></tr></tbody></table>';
+    f='<button class="btn btn-s" data-toast="Invoice reprinted (marked REPRINT)">'+ic('printer',16)+'Reprint</button>'+(s.status==='Completed'?'<button class="btn btn-d" data-toast="Void request sent to the owner app for approval" data-close="1">Request void</button>':'');}
+  else if(k==='prod'){var p=PRODUCTS[i];t='Edit product';
+    b='<div class="field"><label>Item name</label><input class="input" id="pName" value="'+p.n+'"></div><div class="form-grid"><div class="field"><label>Price (VAT inclusive)</label><input class="input mono" id="pPrice" type="number" value="'+p.p+'"></div><div class="field"><label>Category</label><input class="input" value="'+p.c+'" readonly></div></div><div class="trow"><div><b>Show on register and QR menu</b><small>Hidden items stay in reports but cannot be sold</small></div><button class="toggle'+(p.status==='Active'?' on':'')+'" id="pAct" data-act="toggle" aria-label="Toggle visibility"></button></div>';
+    f='<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-saveprod="'+i+'">'+ic('check',16)+'Save product</button>';}
+  else if(k==='inv'){var r=INV[i];t='Adjust stock · '+r.item;
+    b='<dl class="dl" style="margin-bottom:14px"><dt>Branch</dt><dd>'+r.branch+'</dd><dt>On hand</dt><dd class="num">'+r.on+' '+r.unit+'</dd><dt>Reorder at</dt><dd class="num">'+r.re+' '+r.unit+'</dd></dl><div class="field"><label>New count ('+r.unit+')</label><input class="input mono" id="invNew" type="number" step="0.1" value="'+r.on+'"></div><div class="field"><label>Reason</label><select class="sel"><option>Stock count</option><option>Delivery received</option><option>Wastage / spoilage</option><option>Correction</option></select></div>';
+    f='<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-saveinv="'+i+'">'+ic('check',16)+'Save count</button>';}
+  else if(k==='staff'){var st=STAFF[i];t=st.n;
+    b='<dl class="dl"><dt>Role</dt><dd>'+st.role+'</dd><dt>Branch</dt><dd>'+st.branch+'</dd><dt>Schedule</dt><dd>'+st.sched+'</dd><dt>Clock-in today</dt><dd class="num">'+st.inT+'</dd><dt>Transactions today</dt><dd class="num">'+st.tx+'</dd><dt>Status</dt><dd>'+badge(st.st)+'</dd></dl><div class="note" style="margin-top:14px">'+ic('info',18)+'<span>Average checkout time this week: 41 seconds · 0 voids · 1 refund.</span></div>';
+    f='<button class="btn btn-s" data-toast="PIN reset — new PIN sent to '+st.n+'">Reset PIN</button><button class="btn btn-p" data-toast="Schedule updated" data-close="1">Edit schedule</button>';}
+  else if(k==='mem'){var m=MEMBERS[i];t=m.n;
+    b='<dl class="dl"><dt>Mobile</dt><dd class="num">'+m.ph+'</dd><dt>Tier</dt><dd>'+badge(m.tier)+'</dd><dt>Points balance</dt><dd class="num">'+m.pts+'</dd><dt>Visits</dt><dd class="num">'+m.visits+'</dd><dt>Last visit</dt><dd>'+m.last+'</dd><dt>Favorite item</dt><dd>Spanish Latte</dd></dl>';
+    f='<button class="btn btn-p" data-toast="Free drink reward sent to '+m.n+'" data-close="1">'+ic('gift',16)+'Send reward</button>';}
+  else if(k==='z'){var z=ZROWS[i];t='Z-Reading #'+z.z;
+    b='<div class="rcpt"><div class="c"><div class="h">Z-READING #'+z.z+'</div>'+z.branch+' · Terminal '+z.term+'<br>'+z.date+', 2026 · auto-generated at closing</div><hr>'+row('Beginning Invoice No.',z.beg)+row('Ending Invoice No.',z.end)+'<hr>'+row('Gross Sales',money(z.gross))+row('Less: Discounts','-'+money(z.disc))+'<div class="r big"><span>NET SALES</span><span>'+money(z.net)+'</span></div>'+row('VAT Amount (12%)',money(z.vat))+'<hr><div class="c dim">Sent to owner app · included in eSales report</div></div>';
+    f='<button class="btn btn-s" data-toast="Z-Reading reprinted">'+ic('printer',16)+'Reprint</button>';}
+  else if(k==='branch'){var nm=['Branch 1','Branch 2','Branch 3 · Grab & Go'][i];t=nm;
+    b='<dl class="dl"><dt>Status</dt><dd>'+badge('Open')+'</dd><dt>Opened today</dt><dd>'+['6:55 AM','6:58 AM','7:00 AM'][i]+'</dd><dt>Terminals</dt><dd>'+['T01, T04','T02','T03'][i]+'</dd><dt>Menu</dt><dd>'+(i===2?'Café menu + retail shelf':'Full café menu')+'</dd><dt>Price list</dt><dd>Standard</dd></dl>';
+    f='<button class="btn btn-p" data-page="dashboard" data-close="1">'+ic('chart',16)+'Branch report</button>';}
+  openModal({title:t,body:b,foot:f,cls:(k==='z'?'receipt':'')});
+}
+
+/* ============================================================
+   Owner app
+   ============================================================ */
+var OA={all:['₱48,320','12%','214','₱226','All branches'],b1:['₱21,450','9%','96','₱223','Branch 1'],b2:['₱15,870','18%','71','₱224','Branch 2'],b3:['₱11,000','7%','47','₱234','Branch 3']};
+var OA_TITLES={home:'Good morning, Owner',ask:'Ask your store',alerts:'Alerts',reports:'This week'};
+var SUGG=['How much did we sell yesterday?','What is running low?','Who is my fastest cashier?','Are all Z-readings done?'];
+function oaTab(t){
+  $$('.oa-pane').forEach(function(p){p.classList.toggle('on',p.id==='oa-'+t);});
+  $$('.oa-tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.oatab===t);});
+  $('#oaTitle').textContent=OA_TITLES[t];$('#chatbar').classList.toggle('show',t==='ask');$('#oaBody').scrollTop=0;
+  if(t==='ask'&&!$('#chat').children.length){bubble('ai','Hi! I can answer questions about your sales, stock, staff and BIR readings. Try one of these:');sugg();}
+}
+function bubble(who,text){var d=document.createElement('div');d.className='bub '+who;d.innerHTML=(who==='ai'?'<div class="who">'+ic('sparkles',12)+'Assistant</div>':'')+text;$('#chat').appendChild(d);$('#oaBody').scrollTop=$('#oaBody').scrollHeight;return d;}
+function sugg(){var d=document.createElement('div');d.className='sugg';d.innerHTML=SUGG.map(function(q){return '<button data-ask="'+q+'">'+ic('sparkles',13)+q+'</button>';}).join('');$('#chat').appendChild(d);$('#oaBody').scrollTop=$('#oaBody').scrollHeight;}
+function answer(q){
+  q=q.toLowerCase();
+  if(q.indexOf('low')>-1||q.indexOf('stock')>-1||q.indexOf('run')>-1){return '<b>3 items need attention:</b><br>• Oat milk — Branch 1, 3 L left<br>• Croissant dough — Branch 2, 1 tray left<br>• Rice 1kg — Branch 3, out of stock<br>Branch 2 has 18 L of milk to spare. Want me to draft a transfer?';}
+  if(q.indexOf('cashier')>-1||q.indexOf('staff')>-1||q.indexOf('fast')>-1){return '<b>Cashier 2 (Branch 1)</b> is fastest this week: 41 seconds per sale on average across 212 sales, with 0 voids. Cashier 3 (Branch 2) handled the most sales: 268.';}
+  if(q.indexOf('z')>-1||q.indexOf('bir')>-1||q.indexOf('reading')>-1){return '<b>Yes, all done.</b> All 3 branches generated their Z-reading last night automatically. The last one was Branch 3 at 9:42 PM. October eSales data is up to date.';}
+  if(q.indexOf('sell')>-1||q.indexOf('sale')>-1||q.indexOf('sold')>-1||q.indexOf('yesterday')>-1){return '<b>Yesterday (Mon): ₱44,180</b> across 198 transactions — up 6% from last Monday.<br>• Branch 1: ₱19,920<br>• Branch 2: ₱14,380<br>• Branch 3: ₱9,880<br>Best seller: Spanish Latte (86 cups).';}
+  return 'Right now I can help with sales by day or branch, low stock, cashier performance and BIR readings. Try asking “How much did Branch 2 sell yesterday?”';
+}
+function ask(q){
+  bubble('me',q);var t=bubble('ai','<span class="typing"><span></span><span></span><span></span></span>');
+  setTimeout(function(){t.innerHTML='<div class="who">'+ic('sparkles',12)+'Assistant</div>'+answer(q);$('#oaBody').scrollTop=$('#oaBody').scrollHeight;},950);
+}
+function renderWeek(){var W=[['Wed',39.1],['Thu',41.1],['Fri',51.3],['Sat',58.7],['Sun',54.9],['Mon',44.2],['Tue',48.3]];$('#oaWeek').innerHTML=W.map(function(w,i){return '<div class="wbar'+(i===6?' today':'')+'"><i style="height:'+(w[1]/60*100)+'%"></i><small>'+w[0]+'</small></div>';}).join('');}
+
+/* ============================================================
+   Customer QR order
+   ============================================================ */
+var CX={cat:'All',cart:[],pay:'counter',n:142};
+function renderCxTabs(){$('#cxTabs').innerHTML=CAFE_CATS.map(function(c){return '<button class="chip'+(CX.cat===c?' on':'')+'" data-mcat="'+c+'">'+c+'</button>';}).join('');}
+function cxQty(id){var l=CX.cart.filter(function(x){return x.id===id;})[0];return l?l.qty:0;}
+function renderMenu(){
+  renderCxTabs();
+  $('#cxMenu').innerHTML=CAFE.filter(function(i){return i.status!=='Hidden'&&(CX.cat==='All'||i.c===CX.cat);}).map(function(i){var q=cxQty(i.id);return '<div class="mi"><span class="ti tint-'+TINT[i.c]+'">'+initials(i.n)+'</span><div class="grow"><h4>'+i.n+'</h4><p>'+i.d+'</p><span class="mp">'+money(i.p)+'</span></div><button class="add'+(q?' has':'')+'" data-cadd="'+i.id+'" aria-label="Add '+i.n+'">'+(q?q:ic('plus',18))+'</button></div>';}).join('');
+}
+function cxTotal(){return CX.cart.reduce(function(s,l){return s+findItem(l.id).p*l.qty;},0);}
+function renderCart(){
+  var n=CX.cart.reduce(function(s,l){return s+l.qty;},0),t=cxTotal();
+  $('#cartbar').classList.toggle('show',n>0);$('#cbN').textContent=n;$('#cbT').textContent=money(t);
+  $('#cxPlace').textContent='Place order · '+money(t);
+  $('#sheetBody').innerHTML=n?CX.cart.map(function(l){var it=findItem(l.id);return '<div class="line"><div><div class="ln">'+it.n+'</div><div class="lu">'+money(it.p)+' each</div></div><div class="lt">'+money(it.p*l.qty)+'</div><div class="qty"><button data-cq="'+l.id+'" data-d="-1" aria-label="Decrease">'+ic(l.qty>1?'minus':'trash',14)+'</button><span>'+l.qty+'</span><button data-cq="'+l.id+'" data-d="1" aria-label="Increase">'+ic('plus',14)+'</button></div></div>';}).join('')+'<div class="field" style="margin-top:14px"><label>Name for the order</label><input class="input" id="cxName" placeholder="Sample Customer"></div><div class="field"><label>Notes for the barista</label><textarea class="input" id="cxNotes" placeholder="e.g. less ice, oat milk"></textarea></div>':'<p class="muted" style="padding:20px 0;text-align:center">Your order is empty.</p>';
+}
+function cxSheet(open){$('#sheet').classList.toggle('open',open);$('#sheetBack').classList.toggle('open',open);}
+function placeOrder(){
+  if(!CX.cart.length){toast('Add something from the menu first','warn');return;}
+  var name=($('#cxName')&&$('#cxName').value.trim())||'Guest';CX.n++;
+  var no='A-0'+CX.n;
+  S.qr.push({no:no,table:'Table 5',name:name,at:clock(),pay:CX.pay==='qr'?'Paid via QR Ph':'Pay at counter',lines:CX.cart.map(function(l){var it=findItem(l.id);return {key:it.id+'|',id:it.id,n:it.n,price:it.p,qty:l.qty,mods:''};})});
+  updateCounts();CX.cart=[];renderCart();renderMenu();cxSheet(false);
+  openModal({title:'Order sent to the counter',body:'<div style="text-align:center;padding:6px 0 4px"><div class="oa-ic tint-3" style="width:64px;height:64px;border-radius:20px;margin:0 auto 14px">'+ic('checkc',32)+'</div><h3 style="font-size:26px">'+no+'</h3><p class="muted" style="margin:8px 0 0;line-height:1.6">Thanks, '+name+'! Your order is being prepared and will be served at <b>Table 5</b> in about 10 minutes.</p></div>',foot:'<button class="btn btn-s" data-act="mclose">Order more</button><button class="btn btn-p" data-act="seeqr">'+ic('monitor',16)+'See it on the register</button>'});
+}
+
+/* ============================================================
+   Navigation
+   ============================================================ */
+function show(v){
+  cur=v;closeModal();cxSheet(false);
+  $$('.view').forEach(function(s){s.classList.toggle('active',s.id==='v-'+v);});
+  $$('#switcher [data-v]').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});
+  $('#navigator').classList.add('hide');$('#switcher').classList.add('show');
+  if(v==='register'){renderGrid();renderTicket();}
+  if(v==='admin'){renderPage(BO);}
+  if(v==='customer'){renderMenu();}
+  window.scrollTo(0,0);
+}
+function openNavigator(){closeModal();$('#navigator').classList.remove('hide');$('#switcher').classList.remove('show');}
+
+/* Tap counter: counts every tap on the register while a sale is in progress */
+document.addEventListener('click',function(e){
+  if(cur!=='register'||!$('#v-register').classList.contains('active')){return;}
+  var b=e.target.closest('button');if(!b||b.closest('#switcher')||b.closest('#navigator')){return;}
+  S.taps++;updateTap();
+},true);
+
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-go],[data-v],[data-act],[data-toast],[data-item],[data-cat],[data-q],[data-mode],[data-otype],[data-i],[data-mg],[data-scd],[data-sce],[data-mem],[data-pm],[data-pq],[data-h],[data-qr],[data-page],[data-fg],[data-view],[data-saveprod],[data-saveinv],[data-setup],[data-oatab],[data-oab],[data-ask],[data-scroll],[data-mcat],[data-cadd],[data-cq],[data-cpay]');
+  if(!el){if(e.target===$('#modalWrap')){closeModal();}return;}
+  var d=el.dataset;
+  if(d.toast){toast(d.toast);if(d.close){closeModal();}if(!d.page){return;}}
+  if(d.go){show(d.go);return;}
+  if(d.v){show(d.v);return;}
+  if(d.page){closeModal();if(cur!=='admin'){show('admin');}renderPage(d.page);return;}
+  if(d.mode){setMode(d.mode);toast(d.mode==='cafe'?'Café mode: menu, add-ons and table orders':'Retail mode: barcode scanning and quick quantities');return;}
+  if(d.cat){S.cat=d.cat;renderTools();renderGrid();return;}
+  if(d.q){S.nq=+d.q;$$('#qtyChips .chip').forEach(function(c){c.classList.toggle('on',c.dataset.q===d.q);});return;}
+  if(d.item){var it=findItem(d.item);if(S.mode==='cafe'&&it.m){openMods(it);}else{addLine(it,'',0,S.nq);}return;}
+  if(d.i!=null&&d.d){var l=S.lines[+d.i];l.qty+=+d.d;if(l.qty<=0){S.lines.splice(+d.i,1);}renderTicket();return;}
+  if(d.otype){S.otype=d.otype;renderTicket();return;}
+  if(d.mg){var g=MODS.filter(function(x){return x.g===d.mg;})[0];if(g.multi){var k=MOD.add.indexOf(d.mo);if(k>-1){MOD.add.splice(k,1);}else{MOD.add.push(d.mo);}}else{MOD.sel[d.mg]=d.mo;}renderMods();return;}
+  if(d.scd){SC.diners=+d.scd;if(SC.elig>SC.diners){SC.elig=SC.diners;}renderSC();return;}
+  if(d.sce){SC.elig=+d.sce;renderSC();return;}
+  if(d.mem){S.cust=MEMBERS[+d.mem];closeModal();renderTicket();toast(S.cust.n+' attached — points will be added to this sale');return;}
+  if(d.pm){PAY.m=d.pm;renderPay();return;}
+  if(d.pq){PAY.t=+d.pq;$('#payIn').value=PAY.t.toFixed(2);updChange();return;}
+  if(d.h){if(S.lines.length){toast('Hold or clear the current order first','warn');return;}var h=S.held.splice(+d.h,1)[0];if(h.mode!==S.mode){setMode(h.mode);}S.lines=h.lines;S.disc=h.disc;S.cust=h.cust;S.otype=h.otype;S.table=h.table;S.start=Date.now();closeModal();renderTicket();updateCounts();toast(h.label+' resumed');return;}
+  if(d.qr){if(S.lines.length){toast('Hold or clear the current order first','warn');return;}var o=S.qr.splice(+d.qr,1)[0];if(S.mode!=='cafe'){setMode('cafe');}S.lines=o.lines;S.otype='Dine-in';S.table=o.table;S.start=Date.now();closeModal();renderTicket();updateCounts();toast('QR order '+o.no+' loaded — ready to charge');return;}
+  if(d.fg){F[d.fg]=d.fv;renderPage(BO);return;}
+  if(d.view){var p=d.view.split(':');openView(p[0],p[1]);return;}
+  if(d.saveprod){var pr=PRODUCTS[+d.saveprod];pr.n=$('#pName').value||pr.n;pr.p=Math.max(0,+$('#pPrice').value||pr.p);pr.status=$('#pAct').classList.contains('on')?'Active':'Hidden';closeModal();renderPage('products');toast('Product saved — pushed to all registers and the QR menu');return;}
+  if(d.saveinv){var iv=INV[+d.saveinv];iv.on=Math.max(0,+$('#invNew').value);closeModal();renderPage('inventory');toast('Stock count updated for '+iv.item);return;}
+  if(d.setup){SETUP[+d.setup].done=true;renderPage('setup');toast(SETUP[+d.setup].t+' — done');return;}
+  if(d.oatab){oaTab(d.oatab);return;}
+  if(d.oab){var v=OA[d.oab];$('#oaSales').textContent=v[0];$('#oaUp').textContent=v[1];$('#oaTx').textContent=v[2];$('#oaAvg').textContent=v[3];$('#oaSub').textContent='Tuesday · '+v[4];$$('[data-oab]').forEach(function(c){c.classList.toggle('on',c.dataset.oab===d.oab);});return;}
+  if(d.ask){ask(d.ask);return;}
+  if(d.scroll){var t=document.getElementById('cx-'+d.scroll);$('#cxMob').classList.remove('open');if(t){t.scrollIntoView({behavior:'smooth',block:'start'});}return;}
+  if(d.mcat){CX.cat=d.mcat;renderMenu();return;}
+  if(d.cadd){var cl=CX.cart.filter(function(x){return x.id===d.cadd;})[0];if(cl){cl.qty++;}else{CX.cart.push({id:d.cadd,qty:1});}renderMenu();renderCart();return;}
+  if(d.cq){var c=CX.cart.filter(function(x){return x.id===d.cq;})[0];c.qty+=+d.d;if(c.qty<=0){CX.cart.splice(CX.cart.indexOf(c),1);}var nm=$('#cxName')?$('#cxName').value:'',nt=$('#cxNotes')?$('#cxNotes').value:'';renderCart();renderMenu();if($('#cxName')){$('#cxName').value=nm;$('#cxNotes').value=nt;}if(!CX.cart.length){cxSheet(false);}return;}
+  if(d.cpay){CX.pay=d.cpay;$$('[data-cpay]').forEach(function(b){b.classList.toggle('on',b.dataset.cpay===d.cpay);});return;}
+  switch(d.act){
+    case 'menu':openNavigator();break;
+    case 'mclose':closeModal();break;
+    case 'madd':addLine(MOD.it,modLabel(),modExtra(),1);closeModal();break;
+    case 'simscan':var rs=RETAIL.filter(function(x){return x.status!=='Hidden';});var ri=rs[Math.floor(Math.random()*rs.length)];addLine(ri,'',0,S.nq);toast('Scanned '+ri.b+' · '+ri.n);break;
+    case 'member':openMember();break;
+    case 'sc':if(!S.lines.length){toast('Add items before applying a discount','warn');break;}openSC();break;
+    case 'scapply':S.disc={type:'sc',diners:SC.diners,eligible:SC.elig,id:$('#scId').value||SC.id};closeModal();renderTicket();toast('Senior/PWD discount applied — VAT exemption computed');break;
+    case 'promo':if(!S.lines.length){toast('Add items before applying a discount','warn');break;}S.disc=(S.disc&&S.disc.type==='promo')?null:{type:'promo'};renderTicket();break;
+    case 'nodisc':S.disc=null;renderTicket();break;
+    case 'charge':openPay();break;
+    case 'paydone':if(PAY.m!=='cash'&&!PAY.paid){break;}completeSale();break;
+    case 'newsale':closeModal();break;
+    case 'hold':holdOrder();break;
+    case 'held':openHeld();break;
+    case 'qrorders':openQr();break;
+    case 'net':S.offline=!S.offline;if(!S.offline&&S.queued){toast('Back online — '+S.queued+' offline sale'+(S.queued>1?'s':'')+' synced to the cloud');S.queued=0;}else if(S.offline){toast('Offline: keep selling — sales sync when the connection returns','warn');}else{toast('Connection restored');}updateNet();break;
+    case 'shift':openShift();break;
+    case 'xread':openModal({title:'X-Reading',cls:'receipt',body:readingHtml('X'),foot:'<button class="btn btn-s" data-act="shift">Back</button><button class="btn btn-p" data-toast="X-Reading sent to receipt printer">'+ic('printer',16)+'Print</button>'});break;
+    case 'zread':openModal({title:'Z-Reading · End of day',cls:'receipt',body:readingHtml('Z'),foot:'<button class="btn btn-s" data-toast="Z-Reading sent to receipt printer">'+ic('printer',16)+'Print</button><button class="btn btn-p" data-act="mclose">Done</button>'});toast('Z-Reading #0218 generated and sent to the owner app');break;
+    case 'clear':if(!S.lines.length){toast('Order is already empty','warn');break;}S.lines=[];S.disc=null;S.cust=null;S.start=null;renderTicket();toast('Order cleared');break;
+    case 'showticket':$('#ticket').classList.add('open');break;
+    case 'hideticket':$('#ticket').classList.remove('open');break;
+    case 'boside':$('#boSide').classList.add('open');$('#boBackdrop').classList.add('open');break;
+    case 'boclose':$('#boSide').classList.remove('open');$('#boBackdrop').classList.remove('open');break;
+    case 'addprod':openModal({title:'Add product',body:'<div class="field"><label>Item name</label><input class="input" placeholder="e.g. Hazelnut Latte"></div><div class="form-grid"><div class="field"><label>Price (VAT inclusive)</label><input class="input mono" type="number" placeholder="0.00"></div><div class="field"><label>Category</label><select class="sel"><option>Coffee</option><option>Non-Coffee</option><option>Pastries</option><option>Meals</option><option>Beverages</option><option>Pantry</option><option>Household</option></select></div></div><div class="field"><label>Barcode (optional)</label><input class="input mono" placeholder="Scan or type barcode"></div>',foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-toast="Product added to all branches" data-close="1">'+ic('check',16)+'Add product</button>'});break;
+    case 'transfer':openModal({title:'Transfer stock',body:'<div class="form-grid"><div class="field"><label>From</label><select class="sel"><option>Branch 2</option><option>Branch 1</option><option>Branch 3</option></select></div><div class="field"><label>To</label><select class="sel"><option>Branch 1</option><option>Branch 2</option><option>Branch 3</option></select></div></div><div class="field"><label>Item</label><select class="sel"><option>Oat milk</option><option>Fresh milk</option><option>Croissant dough</option><option>Canned Tuna 155g</option></select></div><div class="field"><label>Quantity</label><input class="input mono" type="number" value="6"></div>',foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-toast="Transfer created — receiving branch notified" data-close="1">'+ic('transfer',16)+'Create transfer</button>'});break;
+    case 'toggle':el.classList.toggle('on');break;
+    case 'oaapprove':$('#oaApproval').innerHTML='<div class="oa-row" style="border:0">'+'<div class="oa-ic tint-3">'+ic('checkc',17)+'</div><div class="grow"><b>Void approved</b><small>Invoice 00000137 · Cashier 1 notified</small></div></div>';$('#oaVoid').textContent='0';toast('Void approved — the register was notified');break;
+    case 'oadecline':$('#oaApproval').innerHTML='<div class="oa-row" style="border:0">'+'<div class="oa-ic tint-1">'+ic('x',17)+'</div><div class="grow"><b>Void declined</b><small>Invoice 00000137 stays on record</small></div></div>';$('#oaVoid').textContent='0';toast('Void declined — Cashier 1 notified');break;
+    case 'oaread':$$('.oa-alert').forEach(function(a){a.classList.remove('unread');});$('#oaTabDot').style.display='none';$('#oaBellDot').style.display='none';toast('All alerts marked as read');break;
+    case 'cxmenu':$('#cxMob').classList.toggle('open');break;
+    case 'cxopen':cxSheet(true);break;
+    case 'cxclose':cxSheet(false);break;
+    case 'cplace':placeOrder();break;
+    case 'seeqr':show('register');openQr();break;
+  }
+});
+
+document.addEventListener('change',function(e){if(e.target.id==='tableSel'){S.table=e.target.value;}});
+document.addEventListener('input',function(e){
+  if(e.target.id==='payIn'){PAY.t=+e.target.value||0;updChange();}
+  if(e.target.id==='memQ'){$('#memList').innerHTML=memRows(e.target.value);}
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){closeModal();cxSheet(false);}
+  if(e.key==='Enter'&&e.target.id==='scanIn'){
+    var v=e.target.value.trim().toLowerCase();if(!v){return;}
+    var it=RETAIL.filter(function(x){return x.status!=='Hidden'&&(x.b===v||x.n.toLowerCase().indexOf(v)>-1);})[0];
+    if(it){addLine(it,'',0,S.nq);toast('Added '+it.n);}else{toast('No product matches that barcode','warn');}
+    e.target.value='';
+  }
+});
+$('#chatbar').addEventListener('submit',function(e){e.preventDefault();var v=$('#chatIn').value.trim();if(!v){return;}$('#chatIn').value='';ask(v);});
+$('#rwForm').addEventListener('submit',function(e){e.preventDefault();if(!$('#rwName').value.trim()||!$('#rwPhone').value.trim()){toast('Please enter your name and mobile number','warn');return;}toast('Welcome to Café A Rewards! 20 bonus points added.');e.target.reset();});
+
+/* ============================================================
+   Init
+   ============================================================ */
+hydrate(document);
+renderTools();renderGrid();renderTicket();updateCounts();updateNet();
+renderPage('dashboard');renderMenu();renderCart();renderWeek();
+/* Deep link: index.html#register | #owner | #admin | #customer skips the navigator */
+(function(){var h=location.hash.slice(1);if(['register','owner','admin','customer'].indexOf(h)>-1){show(h);}})();
+</script>
+</body>
+</html>
