@@ -333,6 +333,23 @@ textarea.input{resize:vertical;min-height:70px}
 .bo-link{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:10px;font-weight:600;font-size:13.5px;color:color-mix(in srgb,var(--bg) 78%,transparent);text-align:left}
 .bo-link:hover{background:color-mix(in srgb,var(--bg) 8%,transparent)}
 .bo-link.on{background:var(--primary);color:var(--surface)}
+body.lite .ed-bir{display:none!important}
+body:not(.lite) .ed-lite{display:none!important}
+.tier{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.tier.free{background:var(--accent-50);color:var(--accent)}
+.tier.plus{background:color-mix(in srgb,var(--sun) 28%,var(--surface));color:color-mix(in srgb,var(--sun) 40%,var(--ink))}
+.tier.pro{background:var(--primary-50);color:var(--primary-600)}
+.bo-link .tier{margin-left:auto}
+.bo-link .tier+.pill{margin-left:6px}
+.seg .tier{margin-left:2px}
+.ed-switch{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+.ed-switch>span{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,var(--bg) 60%,transparent)}
+.plan-f{list-style:none;display:grid;gap:8px;font-size:13.5px;line-height:1.45;padding:0;margin:0}
+.plan-f li{display:flex;gap:8px;align-items:flex-start}
+.plan-f svg{color:var(--accent);flex:none;margin-top:2px}
+.bcard.cur{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.marg{display:inline-block;width:56px;height:6px;border-radius:99px;background:var(--surface-2);vertical-align:middle;margin-right:8px;overflow:hidden}
+.marg>i{display:block;height:100%;background:var(--accent)}
 .bo-link .pill{margin-left:auto;font-size:10.5px;background:var(--sun);color:var(--ink);padding:1px 7px;border-radius:999px;font-weight:800}
 .bo-side-foot{margin-top:auto;padding:14px 8px 4px;display:flex;align-items:center;gap:10px;border-top:1px solid color-mix(in srgb,var(--bg) 12%,transparent)}
 .bo-side-foot small{display:block;font-size:11.5px;color:color-mix(in srgb,var(--bg) 55%,transparent)}
@@ -571,8 +588,9 @@ textarea.input{resize:vertical;min-height:70px}
 <div class="nav-ov" id="navigator">
   <div class="nav-in">
     <div class="eyebrow">Interactive Demo</div>
-    <h1>Café &amp; Retail POS</h1>
-    <p class="nav-sub">A point-of-sale platform for cafés, restaurants, mini-marts and convenience stores — fast checkout at the counter, BIR-ready readings, and the whole business on the owner's phone. Choose a view to begin.</p>
+    <h1>Café &amp; Retail POS<span class="ed-lite"> Lite</span></h1>
+    <p class="nav-sub">A point-of-sale platform for cafés, restaurants, mini-marts and convenience stores — fast checkout at the counter, <span class="ed-bir">BIR-ready invoices and readings,</span><span class="ed-lite">free to start with paid add-ons when you need them,</span> and the whole business on the owner's phone. Choose a view to begin.</p>
+    <div class="ed-switch"><span>Edition</span><div class="seg" id="edSeg"><button class="on" data-ed="bir"><i data-ic="shield" data-s="15"></i>BIR-accredited</button><button data-ed="lite"><i data-ic="tag" data-s="15"></i>Lite · Free</button></div></div>
     <div class="nav-cards">
       <button class="nav-card" data-go="register">
         <span class="tag">Start here</span>
@@ -582,6 +600,7 @@ textarea.input{resize:vertical;min-height:70px}
         <span class="go">Open register <i data-ic="arrowr" data-s="15"></i></span>
       </button>
       <button class="nav-card" data-go="owner">
+        <span class="tag ed-lite">Plus add-on</span>
         <span class="ni"><i data-ic="phone" data-s="22"></i></span>
         <h3>Owner App</h3>
         <p>The business in your pocket: live sales per branch, stock alerts, remote approvals, and an AI assistant you can ask anything.</p>
@@ -590,10 +609,11 @@ textarea.input{resize:vertical;min-height:70px}
       <button class="nav-card" data-go="admin">
         <span class="ni"><i data-ic="layout" data-s="22"></i></span>
         <h3>Back-office</h3>
-        <p>Manage products, inventory, staff, loyalty members and branches — with X/Z readings generated automatically for BIR.</p>
+        <p>Manage products, inventory, staff, loyalty members and branches<span class="ed-bir"> — with X/Z readings generated automatically for BIR</span><span class="ed-lite"> — plus profit per item and a simple plan page</span>.</p>
         <span class="go">Open back-office <i data-ic="arrowr" data-s="15"></i></span>
       </button>
       <button class="nav-card" data-go="customer">
+        <span class="tag ed-lite">Pro add-on</span>
         <span class="ni"><i data-ic="qr" data-s="22"></i></span>
         <h3>Customer QR Order</h3>
         <p>What a diner sees after scanning the table QR: browse the menu, place an order, and earn points — no line at the counter.</p>
@@ -614,7 +634,7 @@ textarea.input{resize:vertical;min-height:70px}
         <div><b>Café A</b><small>Branch 1 · Terminal 01</small></div>
       </div>
       <div class="seg" id="modeSeg">
-        <button class="on" data-mode="cafe"><i data-ic="utensils" data-s="15"></i><span class="fb-l">Food &amp; Beverages</span><span class="fb-s">F&amp;B</span></button>
+        <button class="on" data-mode="cafe"><i data-ic="utensils" data-s="15"></i><span class="fb-l">Food &amp; Beverages</span><span class="fb-s">F&amp;B</span><span class="tier pro ed-lite">Pro</span></button>
         <button data-mode="retail"><i data-ic="scan" data-s="15"></i>Retail</button>
       </div>
       <div class="reg-top-r">
@@ -691,7 +711,7 @@ textarea.input{resize:vertical;min-height:70px}
             </div>
             <div class="oa-card oa-appr" id="oaApproval">
               <div class="oa-ttl"><h4>Needs your approval</h4><span class="badge b-info">Void</span></div>
-              <div class="oa-row"><div class="oa-ic tint-1"><i data-ic="receipt" data-s="17"></i></div><div class="grow"><b>Invoice 00000137 · ₱160.00</b><small>Cashier 1 · Branch 1 · "Customer changed order"</small></div></div>
+              <div class="oa-row"><div class="oa-ic tint-1"><i data-ic="receipt" data-s="17"></i></div><div class="grow"><b><span class="ed-bir">Invoice</span><span class="ed-lite">Slip</span> 00000137 · ₱160.00</b><small>Cashier 1 · Branch 1 · "Customer changed order"</small></div></div>
               <div class="btns"><button class="btn btn-s" data-act="oadecline">Decline</button><button class="btn btn-p" data-act="oaapprove">Approve</button></div>
             </div>
             <div class="oa-card">
@@ -713,14 +733,14 @@ textarea.input{resize:vertical;min-height:70px}
           <div class="oa-pane" id="oa-alerts">
             <div class="oa-ttl" style="margin:2px 0 8px"><h4>Today</h4><button class="lnk" data-act="oaread">Mark all read</button></div>
             <div class="oa-card" style="padding:4px 14px">
-              <div class="oa-row oa-alert unread"><div class="oa-ic tint-1"><i data-ic="shield" data-s="16"></i></div><div class="grow"><b>Void request</b><small>Cashier 1 · Invoice 00000137 · ₱160.00 · 10:34 AM</small></div></div>
+              <div class="oa-row oa-alert unread"><div class="oa-ic tint-1"><i data-ic="shield" data-s="16"></i></div><div class="grow"><b>Void request</b><small>Cashier 1 · <span class="ed-bir">Invoice</span><span class="ed-lite">Slip</span> 00000137 · ₱160.00 · 10:34 AM</small></div></div>
               <div class="oa-row oa-alert unread"><div class="oa-ic tint-2"><i data-ic="package" data-s="16"></i></div><div class="grow"><b>Low stock: Oat milk</b><small>Branch 1 · 3 L left · 9:58 AM</small></div></div>
               <div class="oa-row oa-alert unread"><div class="oa-ic tint-1"><i data-ic="package" data-s="16"></i></div><div class="grow"><b>Out of stock: Rice 1kg</b><small>Branch 3 · 9:12 AM</small></div></div>
               <div class="oa-row oa-alert"><div class="oa-ic tint-3"><i data-ic="store" data-s="16"></i></div><div class="grow"><b>All branches open</b><small>Last to open: Branch 3 · 7:00 AM</small></div></div>
             </div>
             <div class="oa-ttl" style="margin:12px 0 8px"><h4>Yesterday</h4></div>
             <div class="oa-card" style="padding:4px 14px">
-              <div class="oa-row oa-alert"><div class="oa-ic tint-3"><i data-ic="receipt" data-s="16"></i></div><div class="grow"><b>Z-Readings complete</b><small>3 of 3 branches · auto-generated at closing</small></div></div>
+              <div class="oa-row oa-alert ed-bir"><div class="oa-ic tint-3"><i data-ic="receipt" data-s="16"></i></div><div class="grow"><b>Z-Readings complete</b><small>3 of 3 branches · auto-generated at closing</small></div></div>
               <div class="oa-row oa-alert"><div class="oa-ic tint-4"><i data-ic="chart" data-s="16"></i></div><div class="grow"><b>Daily summary ready</b><small>Mon · ₱44,180 · 198 transactions</small></div></div>
             </div>
           </div>
@@ -765,17 +785,19 @@ textarea.input{resize:vertical;min-height:70px}
     <aside class="bo-side" id="boSide">
       <div class="bo-brand"><span class="logo-mark"><i data-ic="coffee" data-s="19"></i></span><div><b>Café A</b><small>Back-office · 3 branches</small></div></div>
       <div class="bo-grp">Main</div>
-      <button class="bo-link on" data-page="dashboard"><i data-ic="layout" data-s="17"></i>Dashboard</button>
-      <button class="bo-link" data-page="sales"><i data-ic="receipt" data-s="17"></i>Sales</button>
-      <button class="bo-link" data-page="products"><i data-ic="tag" data-s="17"></i>Products</button>
-      <button class="bo-link" data-page="inventory"><i data-ic="package" data-s="17"></i>Inventory<span class="pill">4</span></button>
+      <button class="bo-link on" data-page="dashboard"><i data-ic="layout" data-s="17"></i>Dashboard<span class="tier free ed-lite">Free</span></button>
+      <button class="bo-link" data-page="sales"><i data-ic="receipt" data-s="17"></i>Sales<span class="tier free ed-lite">Free</span></button>
+      <button class="bo-link" data-page="products"><i data-ic="tag" data-s="17"></i>Products<span class="tier free ed-lite">Free</span></button>
+      <button class="bo-link" data-page="inventory"><i data-ic="package" data-s="17"></i>Inventory<span class="tier free ed-lite">Free</span><span class="pill">4</span></button>
+      <button class="bo-link" data-page="profit"><i data-ic="trend" data-s="17"></i>Profit per Item<span class="tier plus ed-lite">Plus</span></button>
       <div class="bo-grp">People</div>
-      <button class="bo-link" data-page="staff"><i data-ic="users" data-s="17"></i>Staff &amp; Shifts</button>
-      <button class="bo-link" data-page="customers"><i data-ic="gift" data-s="17"></i>Customers &amp; Loyalty</button>
-      <div class="bo-grp">Compliance</div>
-      <button class="bo-link" data-page="bir"><i data-ic="file" data-s="17"></i>BIR Readings<span class="pill">Auto</span></button>
+      <button class="bo-link" data-page="staff"><i data-ic="users" data-s="17"></i>Staff &amp; Shifts<span class="tier plus ed-lite">Plus</span></button>
+      <button class="bo-link" data-page="customers"><i data-ic="gift" data-s="17"></i>Customers &amp; Loyalty<span class="tier plus ed-lite">Plus</span></button>
+      <div class="bo-grp ed-bir">Compliance</div>
+      <button class="bo-link ed-bir" data-page="bir"><i data-ic="file" data-s="17"></i>BIR Readings<span class="pill">Auto</span></button>
       <div class="bo-grp">Business</div>
-      <button class="bo-link" data-page="branches"><i data-ic="building" data-s="17"></i>Branches</button>
+      <button class="bo-link" data-page="branches"><i data-ic="building" data-s="17"></i>Branches<span class="tier pro ed-lite">Pro</span></button>
+      <button class="bo-link ed-lite" data-page="plan"><i data-ic="gift" data-s="17"></i>Plan &amp; Add-ons</button>
       <button class="bo-link" data-page="setup"><i data-ic="checkc" data-s="17"></i>Get Started<span class="pill" id="setupPill">3 left</span></button>
       <button class="bo-link" data-page="settings"><i data-ic="sliders" data-s="17"></i>Settings</button>
       <button class="bo-link" data-page="users"><i data-ic="user" data-s="17"></i>Users &amp; Roles</button>
@@ -915,6 +937,7 @@ textarea.input{resize:vertical;min-height:70px}
 <!-- ================= VIEW SWITCHER & ATTRIBUTION ================= -->
 <div id="switcher">
   <button data-act="menu" title="Back to demo menu"><i data-ic="grid" data-s="16"></i><span>Menu</span></button>
+  <button data-act="edition" title="Switch between BIR and Lite editions"><i data-ic="tag" data-s="16"></i><span id="edLbl">BIR edition</span></button>
   <button data-v="register" title="Cashier Register"><i data-ic="monitor" data-s="16"></i><span>Register</span></button>
   <button data-v="owner" title="Owner App"><i data-ic="phone" data-s="16"></i><span>Owner App</span></button>
   <button data-v="admin" title="Back-office"><i data-ic="layout" data-s="16"></i><span>Back-office</span></button>
@@ -1082,6 +1105,19 @@ S.tabs['Table 4']={guests:4,opened:Date.now()-12*60000,disc:null,cust:null,lines
 S.qr.push({no:'A-0141',table:'Table 3',name:'Guest',at:'10:52 AM',pay:'Pay at counter',lines:[{key:'c3|',id:'c3',n:'Spanish Latte',price:165,qty:2,mods:''},{key:'p1|',id:'p1',n:'Ensaymada',price:75,qty:1,mods:''}]});
 var SHIFT={gross:8450,sc:120,promo:0,exempt:600,vatable:6944.64,vat:833.36,tx:38,cash:5200,qr:2350,card:900,voids:1,beg:104};
 var cur='register';
+var ED='bir';
+function lite(){return ED==='lite';}
+function DOC(){return lite()?'Slip':'Invoice';}
+function setEdition(e){
+  ED=e;document.body.classList.toggle('lite',e==='lite');
+  $$('[data-ed]').forEach(function(b){b.classList.toggle('on',b.dataset.ed===e);});
+  $('#edLbl').textContent=e==='lite'?'Lite edition':'BIR edition';
+  $('.bo-search input').placeholder=e==='lite'?'Search slips, items, members...':'Search invoices, items, members...';
+  $('#chat').innerHTML='';closeModal();
+  if(e==='lite'&&BO==='bir'){BO='dashboard';}
+  if(e!=='lite'&&BO==='plan'){BO='dashboard';}
+  if(cur==='admin'&&$('#navigator').classList.contains('hide')){renderPage(BO);}
+}
 
 function items(){return S.mode==='cafe'?CAFE:RETAIL;}
 function cats(){return S.mode==='cafe'?CAFE_CATS:RETAIL_CATS;}
@@ -1201,7 +1237,7 @@ function renderSC(){
   var b='<div class="field"><label>Diners sharing this bill</label><div class="chips">'+[1,2,3,4,5,6].map(function(n){return '<button class="chip'+(SC.diners===n?' on':'')+'" data-scd="'+n+'">'+n+'</button>';}).join('')+'</div></div>';
   b+='<div class="field"><label>Senior citizen / PWD diners</label><div class="chips">'+Array.apply(null,{length:SC.diners}).map(function(_,i){var n=i+1;return '<button class="chip'+(SC.elig===n?' on':'')+'" data-sce="'+n+'">'+n+'</button>';}).join('')+'</div></div>';
   b+='<div class="field"><label>ID number</label><input class="input mono" id="scId" value="'+SC.id+'"></div>';
-  b+='<div class="note">'+ic('info',18)+'<span>The 20% discount and VAT exemption are pro-rated by eligible diners and printed on the sales invoice automatically.</span></div>';
+  b+='<div class="note">'+ic('info',18)+'<span>The 20% discount and VAT exemption are pro-rated by eligible diners and printed on the '+(lite()?'order slip':'sales invoice')+' automatically.</span></div>';
   openModal({title:'Senior Citizen / PWD discount',body:b,foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-act="scapply">Apply discount</button>'});
 }
 
@@ -1277,19 +1313,19 @@ function completeSale(){
 }
 function row(a,b){return '<div class="r"><span>'+a+'</span><span>'+b+'</span></div>';}
 function invoiceHtml(s){
-  var r=s.r,h='<div class="rcpt"><div class="c"><div class="h">CAFÉ A</div>Operated by Company A<br>123 Sample Street, Brgy. Sample<br>Sample City, Philippines<br>VAT REG TIN 000-000-000-00000<br>MIN 000000000000000001 · SN SAMPLE-T01</div><hr><div class="c h">SALES INVOICE</div>';
-  h+=row('Invoice No.',s.no)+row('Date',s.date+' '+s.time)+row('Cashier','Cashier 1 · T01')+row('Order',s.otype+(s.table?' · '+s.table:''))+(s.share?row('Split bill',s.share):'')+'<hr>';
+  var r=s.r,L=lite(),h='<div class="rcpt"><div class="c"><div class="h">CAFÉ A</div>'+(L?'123 Sample Street, Brgy. Sample<br>Sample City, Philippines</div><hr><div class="c h">ORDER SLIP</div>':'Operated by Company A<br>123 Sample Street, Brgy. Sample<br>Sample City, Philippines<br>VAT REG TIN 000-000-000-00000<br>MIN 000000000000000001 · SN SAMPLE-T01</div><hr><div class="c h">SALES INVOICE</div>');
+  h+=row(L?'Slip No.':'Invoice No.',s.no)+row('Date',s.date+' '+s.time)+row('Cashier','Cashier 1 · T01')+row('Order',s.otype+(s.table?' · '+s.table:''))+(s.share?row('Split bill',s.share):'')+'<hr>';
   s.lines.forEach(function(l){h+='<div>'+l.n+'</div>'+(l.mods?'<div class="dim">&nbsp;&nbsp;'+l.mods+'</div>':'')+row('&nbsp;&nbsp;'+l.qty+' x '+money(l.price),money(l.qty*l.price));});
   h+='<hr>'+row('Subtotal',money(r.gross));
   if(s.disc&&s.disc.type==='sc'){h+=row('Less: VAT exemption','-'+money(r.vatRemoved))+row('Less: SC/PWD 20%','-'+money(r.discount));}
   if(s.disc&&s.disc.type==='promo'){h+=row('Less: Promo 10%','-'+money(r.discount));}
   h+='<div class="r big"><span>TOTAL DUE</span><span>'+money(r.total)+'</span></div>'+row(methodLabel(s.method),money(s.tendered));
   if(s.method==='cash'){h+=row('Change',money(s.change));}
-  h+='<hr>'+row('VATable Sales',money(r.vatable))+row('VAT Amount (12%)',money(r.vat))+row('VAT-Exempt Sales',money(r.exempt))+row('Zero-Rated Sales',money(0))+'<hr>';
+  h+='<hr>'+(L?'':row('VATable Sales',money(r.vatable))+row('VAT Amount (12%)',money(r.vat))+row('VAT-Exempt Sales',money(r.exempt))+row('Zero-Rated Sales',money(0))+'<hr>');
   if(s.disc&&s.disc.type==='sc'){h+='<div>SC/PWD ID No.: '+s.disc.id+'</div><div>Name: ______________________</div><div>Signature: _________________</div><hr>';}
-  h+='<div>Customer: ___________________</div><div>Address: ____________________</div><div>TIN: ________________________</div>';
+  if(!L){h+='<div>Customer: ___________________</div><div>Address: ____________________</div><div>TIN: ________________________</div>';}
   if(s.cust){h+='<div>Member: '+s.cust.n+' · +'+Math.floor(r.total/100)+' pts</div>';}
-  h+='<hr><div class="c dim">POS Provider: Sample POS Provider<br>Accreditation No. 0000000000000000000<br>PTU No. FP000000000000000001<br>Thank you, come again!</div></div>';
+  h+=L?(s.cust?'<hr>':'')+'<div class="c h">THIS IS NOT AN INVOICE</div><div class="c dim">Not valid for claim of input tax.<br>Ask the store for an official invoice.<br>Thank you, come again!</div></div>':'<hr><div class="c dim">POS Provider: Sample POS Provider<br>Accreditation No. 0000000000000000000<br>PTU No. FP000000000000000001<br>Thank you, come again!</div></div>';
   return h;
 }
 function showInvoice(s,done){
@@ -1297,7 +1333,7 @@ function showInvoice(s,done){
   S.awaitNew=done;
   var stat='<div class="sale-stat">'+ic('zap',18)+'<span>'+(s.share?'<b>'+s.share+'</b> paid':'Completed in <b>'+s.taps+' taps</b> · <b>'+s.secs+'s</b>')+(s.offline?' · saved offline, syncs later':'')+'</span></div>';
   var next=done?'<button class="btn btn-p" data-act="newsale">'+ic('plus',16)+'New sale</button>':'<button class="btn btn-p" data-act="split">'+ic('users',16)+'Next guest</button>';
-  openModal({title:s.share?'Split payment · '+s.share:'Sale complete',cls:'receipt',body:stat+invoiceHtml(s),foot:'<button class="btn btn-s" data-toast="Invoice sent to receipt printer">'+ic('printer',16)+'Print</button><button class="btn btn-s" data-toast="E-receipt sent by SMS">'+ic('send',16)+'SMS</button>'+next});
+  openModal({title:s.share?'Split payment · '+s.share:'Sale complete',cls:'receipt',body:stat+invoiceHtml(s),foot:'<button class="btn btn-s" data-toast="'+(lite()?'Order slip':'Invoice')+' sent to receipt printer">'+ic('printer',16)+'Print</button><button class="btn btn-s" data-toast="E-receipt sent by SMS">'+ic('send',16)+'SMS</button>'+next});
 }
 
 /* ----- Tables, kitchen tickets, split bill (Food & Beverages) ----- */
@@ -1354,7 +1390,7 @@ function renderSplit(){
   b+='<div class="field"><label>Number of guests</label><div class="chips">'+[2,3,4,5,6].map(function(n){return '<button class="chip'+(SPL.n===n?' on':'')+'" data-sn="'+n+'">'+n+'</button>';}).join('')+'</div></div>';
   if(SPL.mode==='item'){var u=splitUnits();b+='<div class="field"><label>Tap a guest number for each item</label>'+u.map(function(x,k){return '<div class="splitrow"><div class="grow"><b>'+x.n+'</b><small>'+(x.mods?x.mods+' · ':'')+money(x.price)+'</small></div><div class="gchips">'+Array.apply(null,{length:SPL.n}).map(function(_,g){return '<button class="'+(SPL.asg[k]===g+1?'on':'')+'" data-sg="'+k+':'+(g+1)+'">'+(g+1)+'</button>';}).join('')+'</div></div>';}).join('')+'</div>';}
   b+='<div class="field"><label>Each guest pays</label>'+sh.map(function(s){return '<div class="splitrow"><span class="avatar" style="width:30px;height:30px;font-size:11px">G'+s.label.slice(6)+'</span><div class="grow"><b>'+s.label+'</b>'+(SPL.mode==='item'?'<small>'+s.lines.map(function(l){return l.qty+'x '+l.n;}).join(', ')+'</small>':'')+'</div><b class="num">'+money(s.amount)+'</b></div>';}).join('')+'</div>';
-  b+='<div class="note">'+ic('info',18)+'<span>'+(S.disc?'Discounts are shared proportionally. ':'')+'Each guest gets their own sales invoice.</span></div>';
+  b+='<div class="note">'+ic('info',18)+'<span>'+(S.disc?'Discounts are shared proportionally. ':'')+'Each guest gets their own '+(lite()?'order slip':'sales invoice')+'.</span></div>';
   openModal({title:'Split bill'+(S.tab?' · '+S.tab:''),body:b,foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-act="splitgo">'+ic('card',16)+'Start payments</button>'});
 }
 function startSplit(){var sh=splitCalc();if(sh.length<2){toast('Assign items to at least two guests','warn');return;}SPL.shares=sh;renderSplitPay();}
@@ -1384,17 +1420,17 @@ function openQr(){
 function openShift(){
   var net=SHIFT.vatable+SHIFT.vat+SHIFT.exempt-SHIFT.sc;
   var b='<dl class="dl"><dt>Cashier</dt><dd>Cashier 1</dd><dt>Terminal</dt><dd>T01 · Branch 1</dd><dt>Shift opened</dt><dd>7:00 AM</dd><dt>Opening cash fund</dt><dd class="num">'+money(2000)+'</dd><dt>Net sales this shift</dt><dd class="num">'+money(net)+'</dd><dt>Transactions</dt><dd class="num">'+SHIFT.tx+'</dd><dt>Cash</dt><dd class="num">'+money(SHIFT.cash)+'</dd><dt>QR Ph</dt><dd class="num">'+money(SHIFT.qr)+'</dd><dt>Card</dt><dd class="num">'+money(SHIFT.card)+'</dd></dl>';
-  openModal({title:'Shift · Cashier 1',body:b,foot:'<button class="btn btn-s" data-toast="Cash drop of ₱1,000.00 recorded">'+ic('cash',16)+'Cash drop</button><button class="btn btn-s" data-act="xread">'+ic('file',16)+'X-Reading</button><button class="btn btn-p" data-act="zread">'+ic('receipt',16)+'End of day · Z-Reading</button>'});
+  openModal({title:'Shift · Cashier 1',body:b,foot:'<button class="btn btn-s" data-toast="Cash drop of ₱1,000.00 recorded">'+ic('cash',16)+'Cash drop</button>'+(lite()?'<button class="btn btn-p" data-act="eod">'+ic('receipt',16)+'End-of-day summary</button>':'<button class="btn btn-s" data-act="xread">'+ic('file',16)+'X-Reading</button><button class="btn btn-p" data-act="zread">'+ic('receipt',16)+'End of day · Z-Reading</button>')});
 }
 function readingHtml(type){
   var net=SHIFT.vatable+SHIFT.vat+SHIFT.exempt-SHIFT.sc-0,vex=SHIFT.gross-SHIFT.promo-SHIFT.sc-net;
-  var h='<div class="rcpt"><div class="c"><div class="h">CAFÉ A · '+(type==='Z'?'Z-READING':'X-READING')+'</div>Company A · VAT REG TIN 000-000-000-00000<br>MIN 000000000000000001 · Terminal T01<br>'+today()+' · '+clock()+'</div><hr>';
-  h+=row('Beginning Invoice No.',pad(SHIFT.beg))+row('Ending Invoice No.',pad(S.inv-1))+'<hr>';
+  var E=type==='E',h='<div class="rcpt"><div class="c"><div class="h">CAFÉ A · '+(E?'END-OF-DAY SUMMARY':type==='Z'?'Z-READING':'X-READING')+'</div>'+(E?'Terminal T01 · Branch 1':'Company A · VAT REG TIN 000-000-000-00000<br>MIN 000000000000000001 · Terminal T01')+'<br>'+today()+' · '+clock()+'</div><hr>';
+  h+=row(E?'First Slip No.':'Beginning Invoice No.',pad(SHIFT.beg))+row(E?'Last Slip No.':'Ending Invoice No.',pad(S.inv-1))+'<hr>';
   h+=row('Gross Sales',money(SHIFT.gross))+row('Less: SC/PWD Discount','-'+money(SHIFT.sc))+row('Less: Promo Discount','-'+money(SHIFT.promo))+row('Less: VAT Exemption','-'+money(vex))+'<div class="r big"><span>NET SALES</span><span>'+money(net)+'</span></div><hr>';
-  h+=row('VATable Sales',money(SHIFT.vatable))+row('VAT Amount (12%)',money(SHIFT.vat))+row('VAT-Exempt Sales',money(SHIFT.exempt))+row('Zero-Rated Sales',money(0))+'<hr>';
+  if(!E){h+=row('VATable Sales',money(SHIFT.vatable))+row('VAT Amount (12%)',money(SHIFT.vat))+row('VAT-Exempt Sales',money(SHIFT.exempt))+row('Zero-Rated Sales',money(0))+'<hr>';}
   h+=row('Cash',money(SHIFT.cash))+row('QR Ph',money(SHIFT.qr))+row('Card',money(SHIFT.card))+row('Transactions',SHIFT.tx)+row('Voids',SHIFT.voids)+'<hr>';
   if(type==='Z'){h+=row('Z Counter','0218')+row('Reset Counter','0')+row('Beginning Grand Total',money(4812340))+row('Ending Grand Total',money(4812340+net))+'<hr>';}
-  h+='<div class="c dim">'+(type==='Z'?'End-of-day reading · counters reset':'Mid-shift reading · does not reset counters')+'</div></div>';
+  h+='<div class="c dim">'+(E?'Sales summary for the owner · not a BIR reading':type==='Z'?'End-of-day reading · counters reset':'Mid-shift reading · does not reset counters')+'</div></div>';
   return h;
 }
 
@@ -1444,16 +1480,17 @@ var SETUP=[
 {t:'Staff & PINs',d:'Each cashier signs in with their own 4-digit PIN',done:true},
 {t:'Payments',d:'Turn on QR Ph and card acceptance',done:false},
 {t:'Receipt printer',d:'Pair a thermal printer over Bluetooth or USB',done:false},
-{t:'BIR terminal registration',d:'Generate the Permit to Use application for each terminal',done:false}];
+{t:'BIR terminal registration',d:'Generate the Permit to Use application for each terminal',done:false,bir:1}];
+function setupList(){return SETUP.filter(function(s){return !(lite()&&s.bir);});}
 var USERS=[
 {n:'Sample User',e:'owner@companya.example',role:'Owner',access:'All branches',last:'Just now',st:'Active'},
 {n:'Manager A',e:'manager.a@companya.example',role:'Manager',access:'Branch 1',last:'10:41 AM',st:'Active'},
 {n:'Manager B',e:'manager.b@companya.example',role:'Manager',access:'Branch 2',last:'9:12 AM',st:'Active'},
 {n:'Accountant A',e:'accounts@companya.example',role:'Accountant',access:'Reports only',last:'Yesterday',st:'Active'},
 {n:'Supervisor A',e:'supervisor.a@companya.example',role:'Supervisor',access:'Branch 3',last:'—',st:'Invited'}];
-var F={sales:'All',products:'All',inventory:'All',staff:'All',customers:'All',bir:'All'};
+var F={sales:'All',products:'All',inventory:'All',staff:'All',customers:'All',bir:'All',profit:'All'};
 var BO='dashboard';
-var TITLES={dashboard:'Dashboard',sales:'Sales',products:'Products',inventory:'Inventory',staff:'Staff & Shifts',customers:'Customers & Loyalty',bir:'BIR Readings',branches:'Branches',setup:'Get Started',settings:'Settings',users:'Users & Roles'};
+var TITLES={dashboard:'Dashboard',sales:'Sales',products:'Products',inventory:'Inventory',staff:'Staff & Shifts',customers:'Customers & Loyalty',bir:'BIR Readings',profit:'Profit per Item',plan:'Plan & Add-ons',branches:'Branches',setup:'Get Started',settings:'Settings',users:'Users & Roles'};
 
 function fbar(g,opts){return '<div class="filters">'+opts.map(function(o){return '<button class="chip'+(F[g]===o?' on':'')+'" data-fg="'+g+'" data-fv="'+o+'">'+o+'</button>';}).join('')+'</div>';}
 function tbl(cols,rows){return '<div class="tbl-wrap"><table class="tbl"><thead><tr>'+cols.map(function(c){return '<th'+(c[2]?' class="r"':'')+'>'+c[0]+'</th>';}).join('')+'</tr></thead><tbody>'+(rows.length?rows.map(function(r){return '<tr>'+cols.map(function(c){return '<td'+(c[2]?' class="r"':'')+'>'+c[1](r)+'</td>';}).join('')+'</tr>';}).join(''):'<tr><td colspan="'+cols.length+'" class="empty">No records match this filter.</td></tr>')+'</tbody></table></div>';}
@@ -1464,20 +1501,20 @@ var PAGES={
 dashboard:function(){
   var DAYS=[['Wed',[17.2,12.8,9.1]],['Thu',[18.4,13.1,9.6]],['Fri',[22.6,16.9,11.8]],['Sat',[26.1,19.4,13.2]],['Sun',[24.3,18.2,12.4]],['Mon',[19.9,14.4,9.9]],['Tue',[21.4,15.9,11.0]]];
   var max=60,bars=DAYS.map(function(d){var t=d[1][0]+d[1][1]+d[1][2];return '<div class="bar"><span class="bt">'+t.toFixed(1)+'k</span><div class="stack" style="height:'+(t/max*100)+'%">'+d[1].map(function(v,i){return '<div class="s'+(i+1)+'" style="height:'+(v/t*100)+'%"></div>';}).join('')+'</div><small>'+d[0]+'</small></div>';}).join('');
-  var done=SETUP.filter(function(s){return s.done;}).length,pct=Math.round(done/SETUP.length*100);
-  var feed=ADMIN_SALES.slice(0,6).map(function(s){return '<div class="feed-i"><span class="fi '+(s.status==='Completed'?'tint-3':'tint-1')+'">'+ic(s.type==='Retail'?'scan':'receipt',16)+'</span><div class="grow"><b>Invoice '+s.no+' · '+s.type+'</b><small>'+s.branch+' · '+s.cashier+' · '+s.pay+' · '+s.time+'</small></div><span class="num">'+money(saleTotal(s))+'</span></div>';}).join('');
+  var SL=setupList(),done=SL.filter(function(s){return s.done;}).length,pct=Math.round(done/SL.length*100);
+  var feed=ADMIN_SALES.slice(0,6).map(function(s){return '<div class="feed-i"><span class="fi '+(s.status==='Completed'?'tint-3':'tint-1')+'">'+ic(s.type==='Retail'?'scan':'receipt',16)+'</span><div class="grow"><b>'+DOC()+' '+s.no+' · '+s.type+'</b><small>'+s.branch+' · '+s.cashier+' · '+s.pay+' · '+s.time+'</small></div><span class="num">'+money(saleTotal(s))+'</span></div>';}).join('');
   return '<div class="page-h"><p>Live overview across all branches. Figures update as every register syncs.</p><div class="acts"><button class="btn btn-s" data-toast="Daily summary sent to the owner app">'+ic('send',16)+'Send summary</button><button class="btn btn-p" data-page="sales">'+ic('receipt',16)+'View sales</button></div></div>'+
   '<div class="kpis">'+kpi('Gross sales today','₱48,320','+12% vs last Tuesday','chart')+kpi('Transactions','214','+8% vs last Tuesday','receipt')+kpi('Average ticket','₱226','+4% vs last Tuesday','tag')+kpi('Low / out of stock','4 items','Needs attention','package','down')+'</div>'+
   '<div class="grid2"><div class="panel"><div class="panel-h"><div><h3>Sales by branch · last 7 days</h3><p>In thousands of pesos</p></div><div class="legend"><span><i style="background:var(--primary)"></i>Branch 1</span><span><i style="background:var(--sun)"></i>Branch 2</span><span><i style="background:var(--accent)"></i>Branch 3</span></div></div><div class="bars">'+bars+'</div></div>'+
   '<div class="panel"><div class="panel-h"><h3>Recent transactions</h3><button class="lnk" data-page="sales">See all</button></div>'+feed+'</div></div>'+
   '<div class="grid2"><div class="panel"><div class="panel-h"><h3>Top sellers today</h3></div>'+tbl([['Item',function(r){return '<div class="cell-i"><span class="ti tint-'+r[3]+'">'+initials(r[0])+'</span><b>'+r[0]+'</b></div>';}],['Sold',function(r){return '<span class="num">'+r[1]+'</span>';},1],['Revenue',function(r){return '<span class="num">'+money(r[2])+'</span>';},1]],[['Spanish Latte',64,10560,1],['Tapa Silog',22,5280,4],['Ensaymada',48,3600,2],['Matcha Latte',19,3230,3],['Bottled Water 500ml',71,1420,3]])+'</div>'+
-  '<div class="panel"><div class="panel-h"><h3>Setup progress</h3><span class="badge b-info">'+pct+'%</span></div><div class="progress"><div style="width:'+pct+'%"></div></div><p class="muted" style="margin:12px 0">'+done+' of '+SETUP.length+' steps done. Most stores finish setup in under an hour.</p><button class="btn btn-s" data-page="setup">'+ic('checkc',16)+'Continue setup</button></div></div>';
+  '<div class="panel"><div class="panel-h"><h3>Setup progress</h3><span class="badge b-info">'+pct+'%</span></div><div class="progress"><div style="width:'+pct+'%"></div></div><p class="muted" style="margin:12px 0">'+done+' of '+SL.length+' steps done. Most stores finish setup in under an hour.</p><button class="btn btn-s" data-page="setup">'+ic('checkc',16)+'Continue setup</button></div></div>';
 },
 sales:function(){
   var rows=ADMIN_SALES.map(function(s,i){return [s,i];}).filter(function(x){return F.sales==='All'||x[0].status===F.sales;});
-  return '<div class="page-h"><p>Every invoice from every register, synced in real time. Voids and refunds require owner or manager approval.</p><div class="acts"><button class="btn btn-s" data-toast="Sales report exported (CSV)">'+ic('download',16)+'Export</button></div></div>'+
+  return '<div class="page-h"><p>Every '+DOC().toLowerCase()+' from every register, synced in real time. Voids and refunds require owner or manager approval.</p><div class="acts"><button class="btn btn-s" data-toast="Sales report exported (CSV)">'+ic('download',16)+'Export</button></div></div>'+
   '<div class="panel">'+fbar('sales',['All','Completed','Voided','Refunded'])+tbl([
-    ['Invoice No.',function(x){return '<span class="num">'+x[0].no+'</span>';}],['Time',function(x){return x[0].time;}],['Branch',function(x){return x[0].branch;}],['Cashier',function(x){return x[0].cashier;}],['Type',function(x){return x[0].type;}],['Payment',function(x){return x[0].pay;}],['Total',function(x){return '<b class="num">'+money(saleTotal(x[0]))+'</b>';},1],['Status',function(x){return badge(x[0].status);}],['',function(x){return viewBtn('sale',x[1]);}]],rows)+'</div>';
+    [DOC()+' No.',function(x){return '<span class="num">'+x[0].no+'</span>';}],['Time',function(x){return x[0].time;}],['Branch',function(x){return x[0].branch;}],['Cashier',function(x){return x[0].cashier;}],['Type',function(x){return x[0].type;}],['Payment',function(x){return x[0].pay;}],['Total',function(x){return '<b class="num">'+money(saleTotal(x[0]))+'</b>';},1],['Status',function(x){return badge(x[0].status);}],['',function(x){return viewBtn('sale',x[1]);}]],rows)+'</div>';
 },
 products:function(){
   var rows=PRODUCTS.map(function(p,i){return [p,i];}).filter(function(x){var p=x[0];return F.products==='All'||(F.products==='Hidden'?p.status==='Hidden':p.type===F.products);});
@@ -1514,20 +1551,42 @@ bir:function(){
   '<div class="panel"><div class="panel-h"><h3>Z-readings</h3></div>'+fbar('bir',['All','Branch 1','Branch 2','Branch 3'])+tbl([
     ['Z No.',function(x){return '<span class="num">'+x[0].z+'</span>';}],['Date',function(x){return x[0].date;}],['Branch · Terminal',function(x){return x[0].branch+' · '+x[0].term;}],['Invoice range',function(x){return '<span class="num muted">'+x[0].beg+' – '+x[0].end+'</span>';}],['Gross',function(x){return '<span class="num">'+money(x[0].gross)+'</span>';},1],['Net',function(x){return '<b class="num">'+money(x[0].net)+'</b>';},1],['VAT',function(x){return '<span class="num">'+money(x[0].vat)+'</span>';},1],['Status',function(x){return badge(x[0].st);}],['',function(x){return viewBtn('z',x[1]);}]],rows)+'</div>';
 },
+profit:function(){
+  var CR={Coffee:.3,'Non-Coffee':.32,Pastries:.42,Meals:.46,Beverages:.8,Pantry:.84,Fresh:.82,Household:.78};
+  var SOLD={c1:286,c2:402,c3:1180,c4:214,c5:176,c6:158,n1:342,n2:96,n3:131,n4:265,p1:930,p2:172,p3:248,p4:139,m1:204,m2:418,m3:121,r1:1420,r2:388,r3:212,r4:960,r5:344,r6:415,r7:126,r8:198,r9:233,r10:87,r12:142};
+  var all=PRODUCTS.filter(function(p){return p.status==='Active'&&SOLD[p.id];}).map(function(p){var c=Math.round(p.p*CR[p.c]),u=p.p-c;return {p:p,cost:c,unit:u,m:u/p.p,sold:SOLD[p.id],tot:u*SOLD[p.id]};});
+  var rows=all.filter(function(x){return F.profit==='All'||x.p.type===F.profit;}).sort(function(a,b){return b.tot-a.tot;});
+  var gp=all.reduce(function(a,x){return a+x.tot;},0),rev=all.reduce(function(a,x){return a+x.p.p*x.sold;},0);
+  var best=all.slice().sort(function(a,b){return b.tot-a.tot;})[0],low=all.slice().sort(function(a,b){return a.m-b.m;})[0];
+  return '<div class="page-h"><p>What each item really earns after its cost — so you know what to push, reprice or drop. Costs come from each product; change one and this page updates.</p><div class="acts"><button class="btn btn-s" data-toast="Profit report exported (CSV)">'+ic('download',16)+'Export</button></div></div>'+
+  '<div class="kpis">'+kpi('Gross profit · October','₱'+Math.round(gp).toLocaleString('en-PH'),'All branches','chart')+kpi('Average margin',Math.round(gp/rev*100)+'%','Sales minus item cost','trend')+kpi('Top earner',best.p.n,money0(best.tot)+' profit','tag')+kpi('Lowest margin',low.p.n,Math.round(low.m*100)+'% margin','alert','down')+'</div>'+
+  '<div class="panel">'+fbar('profit',['All','F&B menu','Retail'])+tbl([
+    ['Item',function(x){return '<div class="cell-i"><span class="ti tint-'+TINT[x.p.c]+'">'+initials(x.p.n)+'</span><b>'+x.p.n+'</b></div>';}],['Sold',function(x){return '<span class="num">'+x.sold.toLocaleString('en-PH')+'</span>';},1],['Price',function(x){return '<span class="num">'+money(x.p.p)+'</span>';},1],['Cost',function(x){return '<span class="num muted">'+money(x.cost)+'</span>';},1],['Profit / item',function(x){return '<span class="num">'+money(x.unit)+'</span>';},1],['Margin',function(x){var m=Math.round(x.m*100);return '<span class="marg"><i style="width:'+m+'%"></i></span><span class="num">'+m+'%</span>';}],['Total profit',function(x){return '<b class="num">'+money0(x.tot)+'</b>';},1]],rows)+'</div>';
+},
+plan:function(){
+  var P=[['Free','₱0','forever',['1 register · 1 branch','Unlimited products and sales','Order slips by print or SMS','Cash, QR Ph and card','Basic stock counts','End-of-day summary']],
+  ['Plus','₱399','per month',['Everything in Free','Staff PINs, shifts and clock-ins','Low-stock alerts and transfers','Owner app with live sales','Profit per item and more reports','Loyalty points for members']],
+  ['Pro','₱699','per month',['Everything in Plus','Food & Beverages pack: tables, kitchen tickets, split bills','QR ordering at the table','Up to 3 branches','AI assistant in the owner app']]];
+  return '<div class="page-h"><p>Start free and add only what your store needs. Billing is handled here in the back-office — change or cancel anytime.</p></div>'+
+  '<div class="cards3">'+P.map(function(p){var on=p[0]==='Pro';return '<div class="bcard'+(on?' cur':'')+'"><div class="bh"><h4>'+p[0]+'</h4>'+(on?'<span class="badge b-info">Current plan</span>':'')+'</div><div><span class="big">'+p[1]+'</span> <small class="muted">'+p[2]+'</small></div><ul class="plan-f">'+p[3].map(function(f){return '<li>'+ic('check',15)+'<span>'+f+'</span></li>';}).join('')+'</ul><div style="margin-top:auto">'+(on?'<button class="btn btn-s" data-toast="Billing history opened">'+ic('receipt',16)+'Billing history</button>':'<button class="btn btn-s" data-toast="'+p[0]+' plan selected — takes effect on your next billing date">Switch to '+p[0]+'</button>')+'</div></div>';}).join('')+'</div>'+
+  '<div class="grid2" style="margin-top:14px"><div class="panel"><div class="panel-h"><h3>Your subscription</h3></div><dl class="dl"><dt>Plan</dt><dd>Pro · ₱699 / month</dd><dt>Branches</dt><dd>3 of 3</dd><dt>Next billing</dt><dd>Nov 30, 2026</dd><dt>Payment</dt><dd>QR Ph · auto-renew</dd></dl></div>'+
+  '<div class="panel"><div class="panel-h"><h3>Need official sales invoices?</h3><span class="badge b-ok">'+ic('shield',13)+'BIR-accredited</span></div><p class="muted" style="line-height:1.6;margin-bottom:14px">Order slips are not invoices. When your store is ready, move to the BIR edition: official sales invoices, automatic X/Z readings and e-invoicing. Your products, members and sales history come with you.</p><button class="btn btn-p" data-toast="Thanks — our team will reach out to schedule a BIR edition demo">'+ic('send',16)+'Book a BIR edition demo</button></div></div>';
+},
 branches:function(){
   var B=[['Branch 1','123 Sample Street, Sample City','Manager A',2,21450,96],['Branch 2','456 Sample Avenue, Sample City','Manager B',1,15870,71],['Branch 3 · Grab & Go','789 Sample Road, Sample City','Supervisor A',1,11000,47]];
   return '<div class="page-h"><p>Run every branch from one account — shared catalog, per-branch pricing and stock, one consolidated report.</p><div class="acts"><button class="btn btn-p" data-toast="New branch created — add its terminal to start selling">'+ic('plus',16)+'Add branch</button></div></div>'+
   '<div class="cards3">'+B.map(function(b,i){return '<div class="bcard"><div class="bh"><div><h4>'+b[0]+'</h4><small class="muted">'+b[1]+'</small></div>'+badge('Open')+'</div><div><small class="muted">Sales today</small><div class="big">'+money0(b[4])+'</div></div><dl class="dl"><dt>Manager</dt><dd>'+b[2]+'</dd><dt>Terminals</dt><dd>'+b[3]+'</dd><dt>Transactions</dt><dd class="num">'+b[5]+'</dd></dl><button class="btn btn-s" data-view="branch:'+i+'">'+ic('eye',16)+'View branch</button></div>';}).join('')+'</div>';
 },
 setup:function(){
-  var done=SETUP.filter(function(s){return s.done;}).length,pct=Math.round(done/SETUP.length*100);
+  var SL=setupList(),done=SL.filter(function(s){return s.done;}).length,pct=Math.round(done/SL.length*100);
   return '<div class="page-h"><p>Go from sign-up to your first sale without waiting for a training session.</p></div>'+
-  '<div class="grid2"><div class="panel"><div class="panel-h"><h3>Setup checklist</h3><span class="badge '+(pct===100?'b-ok':'b-info')+'">'+done+' of '+SETUP.length+' done</span></div><div class="progress" style="margin-bottom:16px"><div style="width:'+pct+'%"></div></div>'+
-  SETUP.map(function(s,i){return '<div class="setup-i'+(s.done?' done':'')+'"><span class="si">'+(s.done?ic('check',16):(i+1))+'</span><div class="grow"><b>'+s.t+'</b><small>'+s.d+'</small></div>'+(s.done?'<span class="badge b-ok">Done</span>':'<button class="btn btn-p" data-setup="'+i+'">Set up</button>')+'</div>';}).join('')+'</div>'+
+  '<div class="grid2"><div class="panel"><div class="panel-h"><h3>Setup checklist</h3><span class="badge '+(pct===100?'b-ok':'b-info')+'">'+done+' of '+SL.length+' done</span></div><div class="progress" style="margin-bottom:16px"><div style="width:'+pct+'%"></div></div>'+
+  SL.map(function(s){var i=SETUP.indexOf(s);return '<div class="setup-i'+(s.done?' done':'')+'"><span class="si">'+(s.done?ic('check',16):(i+1))+'</span><div class="grow"><b>'+s.t+'</b><small>'+s.d+'</small></div>'+(s.done?'<span class="badge b-ok">Done</span>':'<button class="btn btn-p" data-setup="'+i+'">Set up</button>')+'</div>';}).join('')+'</div>'+
   '<div class="panel"><div class="panel-h"><h3>'+(pct===100?'You are ready to sell':'Almost there')+'</h3></div><p class="muted" style="line-height:1.6;margin-bottom:14px">'+(pct===100?'Every step is complete. Open the register and ring up your first sale.':'Most stores finish setup in under an hour. Each step takes just a few minutes, and you can start selling before everything is done.')+'</p><div class="note" style="margin-bottom:14px">'+ic('info',18)+'<span>Help is one tap away — chat with support from any screen, every day of the week.</span></div><button class="btn btn-s" data-toast="Support chat opened">'+ic('send',16)+'Chat with support</button></div></div>';
 },
 settings:function(){
   var tg=[['VAT-registered business','Show VATable, VAT-exempt and zero-rated sales on invoices',true],['Auto Z-reading at closing','Generate the end-of-day reading when the last shift closes',true],['Daily summary to owner app','Send sales, voids and stock alerts every night',true],['Offline selling','Keep ringing up sales without internet; sync later',true],['Require approval for voids','Manager or owner must approve before a sale is voided',true]];
+  if(lite()){tg=tg.filter(function(t){return t[0].indexOf('Z-reading')<0;});}
   return '<div class="page-h"><p>Business details printed on invoices, and how the registers behave.</p></div>'+
   '<div class="grid2"><div class="panel"><div class="panel-h"><h3>Business details</h3></div><div class="form-grid">'+
   '<div class="field"><label>Store name</label><input class="input" value="Café A"></div><div class="field"><label>Registered business name</label><input class="input" value="Company A"></div>'+
@@ -1546,14 +1605,14 @@ users:function(){
 function renderPage(p){
   BO=p;$$('.bo-link').forEach(function(b){b.classList.toggle('on',b.dataset.page===p);});
   $('#boTitle').textContent=TITLES[p];$('#boPage').innerHTML=PAGES[p]();$('#boPage').scrollTop=0;
-  var left=SETUP.filter(function(s){return !s.done;}).length;$('#setupPill').textContent=left?left+' left':'Done';
+  var left=setupList().filter(function(s){return !s.done;}).length;$('#setupPill').textContent=left?left+' left':'Done';
   $('#boSide').classList.remove('open');$('#boBackdrop').classList.remove('open');
 }
 function openView(k,i){
   i=+i;var b='',t='',f='';
-  if(k==='sale'){var s=ADMIN_SALES[i],tot=saleTotal(s);t='Invoice '+s.no;
+  if(k==='sale'){var s=ADMIN_SALES[i],tot=saleTotal(s);t=DOC()+' '+s.no;
     b='<dl class="dl"><dt>Status</dt><dd>'+badge(s.status)+'</dd><dt>Time</dt><dd>'+s.time+'</dd><dt>Branch</dt><dd>'+s.branch+'</dd><dt>Cashier</dt><dd>'+s.cashier+'</dd><dt>Order type</dt><dd>'+s.type+'</dd><dt>Payment</dt><dd>'+s.pay+'</dd></dl><table class="mtbl"><thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Amount</th></tr></thead><tbody>'+s.items.map(function(it){return '<tr><td>'+it[0]+'</td><td class="r num">'+it[1]+'</td><td class="r num">'+money(it[1]*it[2])+'</td></tr>';}).join('')+'<tr><td><b>Total</b></td><td></td><td class="r"><b class="num">'+money(tot)+'</b></td></tr><tr><td class="muted">VAT included</td><td></td><td class="r num muted">'+money(tot-tot/1.12)+'</td></tr></tbody></table>';
-    f='<button class="btn btn-s" data-toast="Invoice reprinted (marked REPRINT)">'+ic('printer',16)+'Reprint</button>'+(s.status==='Completed'?'<button class="btn btn-d" data-toast="Void request sent to the owner app for approval" data-close="1">Request void</button>':'');}
+    f='<button class="btn btn-s" data-toast="'+DOC()+' reprinted (marked REPRINT)">'+ic('printer',16)+'Reprint</button>'+(s.status==='Completed'?'<button class="btn btn-d" data-toast="Void request sent to the owner app for approval" data-close="1">Request void</button>':'');}
   else if(k==='prod'){var p=PRODUCTS[i];t='Edit product';
     b='<div class="field"><label>Item name</label><input class="input" id="pName" value="'+p.n+'"></div><div class="form-grid"><div class="field"><label>Price (VAT inclusive)</label><input class="input mono" id="pPrice" type="number" value="'+p.p+'"></div><div class="field"><label>Category</label><input class="input" value="'+p.c+'" readonly></div></div><div class="trow"><div><b>Show on register and QR menu</b><small>Hidden items stay in reports but cannot be sold</small></div><button class="toggle'+(p.status==='Active'?' on':'')+'" id="pAct" data-act="toggle" aria-label="Toggle visibility"></button></div>';
     f='<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-saveprod="'+i+'">'+ic('check',16)+'Save product</button>';}
@@ -1585,14 +1644,16 @@ function oaTab(t){
   $$('.oa-pane').forEach(function(p){p.classList.toggle('on',p.id==='oa-'+t);});
   $$('.oa-tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.oatab===t);});
   $('#oaTitle').textContent=OA_TITLES[t];$('#chatbar').classList.toggle('show',t==='ask');$('#oaBody').scrollTop=0;
-  if(t==='ask'&&!$('#chat').children.length){bubble('ai','Hi! I can answer questions about your sales, stock, staff and BIR readings. Try one of these:');sugg();}
+  if(t==='ask'&&!$('#chat').children.length){bubble('ai','Hi! I can answer questions about your sales, stock, staff and '+(lite()?'profit':'BIR readings')+'. Try one of these:');sugg();}
 }
 function bubble(who,text){var d=document.createElement('div');d.className='bub '+who;d.innerHTML=(who==='ai'?'<div class="who">'+ic('sparkles',12)+'Assistant</div>':'')+text;$('#chat').appendChild(d);$('#oaBody').scrollTop=$('#oaBody').scrollHeight;return d;}
-function sugg(){var d=document.createElement('div');d.className='sugg';d.innerHTML=SUGG.map(function(q){return '<button data-ask="'+q+'">'+ic('sparkles',13)+q+'</button>';}).join('');$('#chat').appendChild(d);$('#oaBody').scrollTop=$('#oaBody').scrollHeight;}
+function sugg(){var d=document.createElement('div');d.className='sugg';d.innerHTML=(lite()?SUGG.slice(0,3).concat(['What earns the most profit?']):SUGG).map(function(q){return '<button data-ask="'+q+'">'+ic('sparkles',13)+q+'</button>';}).join('');$('#chat').appendChild(d);$('#oaBody').scrollTop=$('#oaBody').scrollHeight;}
 function answer(q){
   q=q.toLowerCase();
   if(q.indexOf('low')>-1||q.indexOf('stock')>-1||q.indexOf('run')>-1){return '<b>3 items need attention:</b><br>• Oat milk — Branch 1, 3 L left<br>• Croissant dough — Branch 2, 1 tray left<br>• Rice 1kg — Branch 3, out of stock<br>Branch 2 has 18 L of milk to spare. Want me to draft a transfer?';}
   if(q.indexOf('cashier')>-1||q.indexOf('staff')>-1||q.indexOf('fast')>-1){return '<b>Cashier 2 (Branch 1)</b> is fastest this week: 41 seconds per sale on average across 212 sales, with 0 voids. Cashier 3 (Branch 2) handled the most sales: 268.';}
+  if(q.indexOf('profit')>-1||q.indexOf('earn')>-1){return '<b>Spanish Latte</b> earns the most: about ₱115 profit per cup and 1,180 sold this month. <b>Tapa Silog</b> is second. Retail items like bottled water sell a lot but keep only about 20%.';}
+  if(lite()&&(q.indexOf('z')>-1||q.indexOf('bir')>-1||q.indexOf('reading')>-1)){return 'X and Z readings are part of the <b>BIR edition</b>. In Lite, each register saves an end-of-day summary instead — the last one was Branch 3 at 9:42 PM.';}
   if(q.indexOf('z')>-1||q.indexOf('bir')>-1||q.indexOf('reading')>-1){return '<b>Yes, all done.</b> All 3 branches generated their Z-reading last night automatically. The last one was Branch 3 at 9:42 PM. October eSales data is up to date.';}
   if(q.indexOf('sell')>-1||q.indexOf('sale')>-1||q.indexOf('sold')>-1||q.indexOf('yesterday')>-1){return '<b>Yesterday (Mon): ₱44,180</b> across 198 transactions — up 6% from last Monday.<br>• Branch 1: ₱19,920<br>• Branch 2: ₱14,380<br>• Branch 3: ₱9,880<br>Best seller: Spanish Latte (86 cups).';}
   return 'Right now I can help with sales by day or branch, low stock, cashier performance and BIR readings. Try asking “How much did Branch 2 sell yesterday?”';
@@ -1643,6 +1704,7 @@ function show(v){
   if(v==='customer'){renderMenu();}
   window.scrollTo(0,0);
 }
+function edToast(){toast(lite()?'Lite edition: free POS with order slips — BIR pages hidden':'BIR edition: official sales invoices and X/Z readings');}
 function openNavigator(){closeModal();$('#navigator').classList.remove('hide');$('#switcher').classList.remove('show');}
 
 /* Tap counter: counts every tap on the register while a sale is in progress */
@@ -1653,14 +1715,15 @@ document.addEventListener('click',function(e){
 },true);
 
 document.addEventListener('click',function(e){
-  var el=e.target.closest('[data-go],[data-v],[data-act],[data-toast],[data-item],[data-cat],[data-q],[data-mode],[data-otype],[data-i],[data-mg],[data-scd],[data-sce],[data-mem],[data-pm],[data-pq],[data-h],[data-qr],[data-page],[data-fg],[data-view],[data-saveprod],[data-saveinv],[data-setup],[data-oatab],[data-oab],[data-ask],[data-scroll],[data-mcat],[data-cadd],[data-cq],[data-cpay],[data-tbl],[data-sn],[data-sm],[data-sg],[data-sp],[data-vr]');
+  var el=e.target.closest('[data-go],[data-v],[data-act],[data-toast],[data-item],[data-cat],[data-q],[data-mode],[data-otype],[data-i],[data-mg],[data-scd],[data-sce],[data-mem],[data-pm],[data-pq],[data-h],[data-qr],[data-page],[data-fg],[data-view],[data-saveprod],[data-saveinv],[data-setup],[data-oatab],[data-oab],[data-ask],[data-scroll],[data-mcat],[data-cadd],[data-cq],[data-cpay],[data-tbl],[data-sn],[data-sm],[data-sg],[data-sp],[data-vr],[data-ed]');
   if(!el){if(e.target===$('#modalWrap')){closeModal();}return;}
   var d=el.dataset;
   if(d.toast){toast(d.toast);if(d.close){closeModal();}if(!d.page){return;}}
+  if(d.ed){if(d.ed!==ED){setEdition(d.ed);}return;}
   if(d.go){show(d.go);return;}
   if(d.v){show(d.v);return;}
   if(d.page){closeModal();if(cur!=='admin'){show('admin');}renderPage(d.page);return;}
-  if(d.mode){setMode(d.mode);toast(d.mode==='cafe'?'Food & Beverages mode: table tabs, kitchen tickets and split bills':'Retail mode: barcode scanning and quick quantities');return;}
+  if(d.mode){setMode(d.mode);toast(d.mode==='cafe'?(lite()?'Pro add-on · ':'')+'Food & Beverages mode: table tabs, kitchen tickets and split bills':'Retail mode: barcode scanning and quick quantities');return;}
   if(d.cat){S.cat=d.cat;renderTools();renderGrid();return;}
   if(d.q){S.nq=+d.q;$$('#qtyChips .chip').forEach(function(c){c.classList.toggle('on',c.dataset.q===d.q);});return;}
   if(d.item){var it=findItem(d.item);if(S.mode==='cafe'&&it.m){openMods(it);}else{addLine(it,'',0,S.nq);}return;}
@@ -1718,6 +1781,8 @@ document.addEventListener('click',function(e){
     case 'net':S.offline=!S.offline;if(!S.offline&&S.queued){toast('Back online — '+S.queued+' offline sale'+(S.queued>1?'s':'')+' synced to the cloud');S.queued=0;}else if(S.offline){toast('Offline: keep selling — sales sync when the connection returns','warn');}else{toast('Connection restored');}updateNet();break;
     case 'shift':openShift();break;
     case 'xread':openModal({title:'X-Reading',cls:'receipt',body:readingHtml('X'),foot:'<button class="btn btn-s" data-act="shift">Back</button><button class="btn btn-p" data-toast="X-Reading sent to receipt printer">'+ic('printer',16)+'Print</button>'});break;
+    case 'eod':openModal({title:'End-of-day summary',cls:'receipt',body:readingHtml('E'),foot:'<button class="btn btn-s" data-toast="Summary sent to receipt printer">'+ic('printer',16)+'Print</button><button class="btn btn-p" data-act="mclose">Done</button>'});toast('End-of-day summary saved to Sales');break;
+    case 'edition':setEdition(lite()?'bir':'lite');edToast();break;
     case 'zread':openModal({title:'Z-Reading · End of day',cls:'receipt',body:readingHtml('Z'),foot:'<button class="btn btn-s" data-toast="Z-Reading sent to receipt printer">'+ic('printer',16)+'Print</button><button class="btn btn-p" data-act="mclose">Done</button>'});toast('Z-Reading #0218 generated and sent to the owner app');break;
     case 'clear':if(!S.lines.length){toast('Order is already empty','warn');break;}if(S.lines.some(function(l){return l.sent;})){toast('Sent items can’t be cleared — void them one by one with a manager PIN','warn');break;}if(S.tab){delete S.tabs[S.tab];S.tab=null;}SPL=null;S.lines=[];S.disc=null;S.cust=null;S.start=null;renderTicket();toast('Order cleared');break;
     case 'showticket':$('#ticket').classList.add('open');break;
@@ -1727,8 +1792,8 @@ document.addEventListener('click',function(e){
     case 'addprod':openModal({title:'Add product',body:'<div class="field"><label>Item name</label><input class="input" placeholder="e.g. Hazelnut Latte"></div><div class="form-grid"><div class="field"><label>Price (VAT inclusive)</label><input class="input mono" type="number" placeholder="0.00"></div><div class="field"><label>Category</label><select class="sel"><option>Coffee</option><option>Non-Coffee</option><option>Pastries</option><option>Meals</option><option>Beverages</option><option>Pantry</option><option>Household</option></select></div></div><div class="field"><label>Barcode (optional)</label><input class="input mono" placeholder="Scan or type barcode"></div>',foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-toast="Product added to all branches" data-close="1">'+ic('check',16)+'Add product</button>'});break;
     case 'transfer':openModal({title:'Transfer stock',body:'<div class="form-grid"><div class="field"><label>From</label><select class="sel"><option>Branch 2</option><option>Branch 1</option><option>Branch 3</option></select></div><div class="field"><label>To</label><select class="sel"><option>Branch 1</option><option>Branch 2</option><option>Branch 3</option></select></div></div><div class="field"><label>Item</label><select class="sel"><option>Oat milk</option><option>Fresh milk</option><option>Croissant dough</option><option>Canned Tuna 155g</option></select></div><div class="field"><label>Quantity</label><input class="input mono" type="number" value="6"></div>',foot:'<button class="btn btn-s" data-act="mclose">Cancel</button><button class="btn btn-p" data-toast="Transfer created — receiving branch notified" data-close="1">'+ic('transfer',16)+'Create transfer</button>'});break;
     case 'toggle':el.classList.toggle('on');break;
-    case 'oaapprove':$('#oaApproval').innerHTML='<div class="oa-row" style="border:0">'+'<div class="oa-ic tint-3">'+ic('checkc',17)+'</div><div class="grow"><b>Void approved</b><small>Invoice 00000137 · Cashier 1 notified</small></div></div>';$('#oaVoid').textContent='0';toast('Void approved — the register was notified');break;
-    case 'oadecline':$('#oaApproval').innerHTML='<div class="oa-row" style="border:0">'+'<div class="oa-ic tint-1">'+ic('x',17)+'</div><div class="grow"><b>Void declined</b><small>Invoice 00000137 stays on record</small></div></div>';$('#oaVoid').textContent='0';toast('Void declined — Cashier 1 notified');break;
+    case 'oaapprove':$('#oaApproval').innerHTML='<div class="oa-row" style="border:0">'+'<div class="oa-ic tint-3">'+ic('checkc',17)+'</div><div class="grow"><b>Void approved</b><small>'+DOC()+' 00000137 · Cashier 1 notified</small></div></div>';$('#oaVoid').textContent='0';toast('Void approved — the register was notified');break;
+    case 'oadecline':$('#oaApproval').innerHTML='<div class="oa-row" style="border:0">'+'<div class="oa-ic tint-1">'+ic('x',17)+'</div><div class="grow"><b>Void declined</b><small>'+DOC()+' 00000137 stays on record</small></div></div>';$('#oaVoid').textContent='0';toast('Void declined — Cashier 1 notified');break;
     case 'oaread':$$('.oa-alert').forEach(function(a){a.classList.remove('unread');});$('#oaTabDot').style.display='none';$('#oaBellDot').style.display='none';toast('All alerts marked as read');break;
     case 'cxmenu':$('#cxMob').classList.toggle('open');break;
     case 'cxopen':cxSheet(true);break;
@@ -1761,8 +1826,8 @@ $('#rwForm').addEventListener('submit',function(e){e.preventDefault();if(!$('#rw
 hydrate(document);
 renderTools();renderGrid();renderTicket();updateCounts();updateNet();
 renderPage('dashboard');renderMenu();renderCart();renderWeek();
-/* Deep link: index.html#register | #owner | #admin | #customer skips the navigator */
-(function(){var h=location.hash.slice(1);if(['register','owner','admin','customer'].indexOf(h)>-1){show(h);}})();
+/* Deep link: index.html#register | #owner | #admin | #customer skips the navigator; add -lite (e.g. #admin-lite, or #lite) for the Lite edition */
+(function(){var h=location.hash.slice(1).split('-');if(h.indexOf('lite')>-1){setEdition('lite');}if(['register','owner','admin','customer'].indexOf(h[0])>-1){show(h[0]);}})();
 </script>
 </body>
 </html>
